@@ -1,7 +1,7 @@
 {
     "Health Potion":{
         "consumable":true,
-        "info":"Potion that restores health points",
+        "info":"Potion that restores 30 health points",
         "restore":{
             "hp":30
         },

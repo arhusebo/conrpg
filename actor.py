@@ -3,17 +3,17 @@ class Actor():
     def __init__(self):
         self.name = "Actor"
         self.level = 1
-        self.gold = 0
-        self.hpMax = 1
-        self.hp = 1
-        self.attack = 0
-        self.defense = 0
+        self.gold =  0
         self.inventory = []
         self.inventorySlots = 0
 
         self.base_hp = 1
         self.base_attack = 0
         self.base_defense = 0
+        self.hpMax = self.base_hp
+        self.hp = self.base_hp
+        self.attack = self.base_attack
+        self.defense = self.base_defense
 
     def addItem(self, item):
         '''Tries to add item to actor inventory based on available inventory slots.
@@ -82,7 +82,7 @@ class Actor():
 class Player(Actor):
     '''Player class for player specific data and methodology.'''
     def __init__(self):
-        Actor.__init__(self)
+        super().__init__()
         self.exp = 0
 
     def getExpNextLevel(self):
@@ -107,16 +107,16 @@ class Player(Actor):
 
 class Monster(Actor):
     '''Monster class for monster specific data and methodology.'''
-    def __init__(self, name, type):
-        Actor.__init__(self)
+    def __init__(self, name, **kwargs):
+        super().__init__()
         self.name = name
 
-        self.base_hp = type.get('hp')
-        self.base_attack = type.get('attack')
+        self.base_hp = kwargs.get('hp', 1)
+        self.base_attack = kwargs.get('attack', 0)
 
         self.hpMax = self.base_hp
         self.hp = self.hpMax
         self.attack = self.base_attack
 
-        self.levelRange = type.get('level')
-        self.setLevel(self.levelRange[0])
+        self.levelMin = kwargs.get('levelMin', 0)
+        self.levelMax = kwargs.get('levelMax', 0)
