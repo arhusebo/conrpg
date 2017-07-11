@@ -1,0 +1,20 @@
+{
+    "Giant Rat":{
+        "attack":15,
+        "hp":40,
+        "levelMax":4,
+        "levelMin":1
+    },
+    "Giant Spider":{
+        "attack":30,
+        "hp":25,
+        "levelMax":5,
+        "levelMin":1
+    },
+    "Wolf":{
+        "attack":30,
+        "hp":45,
+        "levelMax":8,
+        "levelMin":3
+    }
+}

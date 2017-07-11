@@ -1,0 +1,35 @@
+{
+    "Health Potion":{
+        "consumable":true,
+        "info":"Potion that restores health points",
+        "restore":{
+            "hp":30
+        },
+        "value":10
+    },
+    "Knight Shield":{
+        "defense":5,
+        "info":"Strong shield made for a knight",
+        "value":45
+    },
+    "Rusted Sword":{
+        "attack":3,
+        "info":"Old, worn and rusted sword, probably iron",
+        "value":1
+    },
+    "Steel Sword":{
+        "attack":8,
+        "info":"Robust sword made of steel",
+        "value":30
+    },
+    "Stick":{
+        "attack":1,
+        "info":"Just a stick, nothing special",
+        "value":0
+    },
+    "Wooden Shield":{
+        "defense":1,
+        "info":"Simple shield made of a piece of driftwood",
+        "value":0
+    }
+}
