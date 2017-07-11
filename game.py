@@ -58,6 +58,7 @@ class Game():
 
             io.msg("\t ~ " + self.player.name + " ~\n")
             io.table([  ["Level", self.player.level],
+                        ["HP", str(self.player.hp)+"/"+str(self.player.hpMax)],
                         ["Attack", str(self.player.attack) + " (+" + str(self.player.getBonusAttack()) + ")"],
                         ["Defense", str(self.player.defense) + " (+" + str(self.player.getBonusDefense()) + ")"]
             ])
@@ -233,6 +234,7 @@ class Game():
     # Main menu screen and highest parent
     def mainMenu(self):
         io.cls()
+        io.msg("conrpg v1.0 by arhusebo")
         running = True
         while running == True:
             c = io.menu("Main menu", ["New Game", "Load Game", "Save Game", "About", "Exit"])
@@ -278,8 +280,10 @@ class Game():
     def mm_loadGame(self):
         io.cls()
         self.player = Player()
-        loadGame('config/save.json', self.player, self.items)
-        self.town()
+        if loadGame('config/save.json', self.player, self.items):
+            self.town()
+        else:
+            io.msg("No saved game available.")
 
     #Main Menu/Save Game screen
     def mm_saveGame(self):
@@ -295,6 +299,5 @@ class Game():
         io.cls()
         io.msg("conrpg v0.1 by Arel")
 
-io.msg("conrpg v0.1")
 game = Game()
 game.mainMenu()
