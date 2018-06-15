@@ -32,51 +32,36 @@ class Actor():
 
     def heal(self, amount):
         '''Heals the actor by given amount, not exceeding max actor HP.'''
-        self.hp += amount
-        if self.hp >= self.hpMax:
-            self.hp = self.hpMax
+        self.hp = min(self.hpMax, self.hp + amount)
 
     def damage(self, amount):
         '''Damages the actor by given amount.'''
-        self.hp -= amount
-        if self.hp <= 0:
-            self.hp = 0
+        self.hp = min(0, self.hp - amount)
 
     def getBonusAttack(self):
         '''Returns bonus attack value based on inventory items.'''
-        bonusAttack = 0
-        for item in self.inventory:
-            if item.attack:
-                bonusAttack += item.attack
+        bonusAttack = sum(item.attack for item in self.inventory if item.attack)
         return bonusAttack
 
     def getBonusDefense(self):
         '''Returns bonus defense value based on inventory items.'''
-        bonusDefense = 0
-        for item in self.inventory:
-            if item.defense:
-                bonusDefense += item.defense
+        bonusDefense = sum(item.defense for item in self.inventory if item.defense)
         return bonusDefense
 
     def isDead(self):
         '''Returns True if actor is dead.'''
-        if self.hp == 0:
-            return True
-        return False
+        return self.hp == 0
 
     def getInventoryItemNames(self):
         '''Returns a list containing names of alle the items in the inventory'''
-        names = []
-        for item in self.inventory:
-            names.append(item.name)
+        names = [item.name for name in self.inventory]
         return names
 
-    def setLevel(self, level):
+    def setAttributes(self, level):
         '''Sets actor level and updates stats accordingly'''
-        self.level = level
-        self.attack = self.base_attack + level-1
-        self.defense = self.base_defense + level-1
-        self.hpMax = self.base_hp + 10 * (level-1)
+        self.attack = self.base_attack + level - 1
+        self.defense = self.base_defense + level - 1
+        self.hpMax = self.base_hp + 10 * (level - 1)
         self.hp = self.hpMax
 
 class Player(Actor):
@@ -89,14 +74,15 @@ class Player(Actor):
         '''Returns required experience for leveling up.'''
         return int(100 * pow(self.level, 1.9))
 
-    def checkLevel(self):
-        '''Sets actor level and returns True if player has levelled up based on experience.'''
-        oldLevel = self.level
+    def checkLevelup(self):
+        '''Returns True if player has levelled up based on experience.'''
+        return self.exp > self.getExpNextLevel()
+    
+    def levelup(self):
+        '''Sets actor level and increases their attributes'''
         while self.exp > self.getExpNextLevel():
-            self.setLevel(self.level+1)
-        if self.level > oldLevel:
-            return True
-        return False
+            self.level += 1
+            self.setAttributes(self.level)
 
     def removeGold(self, amount):
         '''Removes given amount. Returns False if there is insufficient gold available.'''

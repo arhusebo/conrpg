@@ -216,7 +216,8 @@ class Game():
                     if(battle.monster.isDead()):
                         io.msg(battle.monster.name + " dies. You are victorious!")
                         io.msg("{} experience gained.".format(battle.awardPlayerExp()))
-                        if self.player.checkLevel():
+                        if self.player.checkLevelup():
+                            self.player.levelup()
                             io.msg("{} leveled up! You are now level {}".format(self.player.name, self.player.level))
                     elif(battle.player.isDead()):
                         io.msg(battle.player.name + "dies. You have been defeated!")
