@@ -16,33 +16,31 @@ class Battle():
         Returns:
         final damage recieved by defender
         '''
-        damageRaw = attacker.attack + attacker.getBonusAttack()
-        deviation = int(random.uniform(-damageRaw/4,damageRaw/4)+.5)
-        damageRaw += deviation
-        defense = defender.defense + defender.getBonusDefense()
+        damage_raw = attacker.attack + attacker.get_bonus_attack()
+        deviation = int(random.uniform(-damage_raw/4,damage_raw/4)+.5)
+        damage_raw += deviation
+        defense = defender.defense + defender.get_bonus_defense()
         if defense:
-            damage = int(damageRaw / (defender.defense + defender.getBonusDefense()))
+            damage_points = int(damage_raw / (defender.defense + defender.get_bonus_defense()))
         else:
-            damage = damageRaw
-        defender.damage(damage)
-        return damage
+            damage_points = damage_raw
+        defender.damage(damage_points)
+        return damage_points
 
-    def playerAttack(self):
+    def player_attack(self):
         '''Makes player attack monster for one iteration, returning final damage recieved by monster.'''
         damage = self.attack(self.player, self.monster)
         return damage
 
-    def monsterAttack(self):
+    def monster_attack(self):
         '''Makes monster attack player for one iteration, returning final damage recieved by player.'''
         damage = self.attack(self.monster, self.player)
         return damage
 
-    def isBattleOver(self):
-        '''Returns True if either player or monster is dead.'''
-        return self.player.isDead() or self.monster.isDead()
+    def is_battle_over(self):
+        return self.player.is_dead() or self.monster.is_dead()
 
-    def awardPlayerExp(self):
-        '''Adds experience to the player based on monster level'''
-        expGained = self.monster.level * 20
-        self.player.exp += expGained
-        return expGained
+    def award_player_exp(self):
+        exp_gained = self.monster.level * 20
+        self.player.exp += exp_gained
+        return exp_gained
