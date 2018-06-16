@@ -24,8 +24,10 @@ class Game():
     # Town screen
     def town(self):
         io.cls()
-        io.msg("Welcome to town! This is your main hub of operations.\n"+
-        "From here you can view character details and access different areas.\n")
+        io.msg("""
+            Welcome to town! This is your main hub of operations.
+            From here you can view character details and access different areas.
+        """)
         in_town = True
         def exit_town():
             nonlocal in_town
@@ -123,9 +125,11 @@ class Game():
         back = False
         while not back:
             io.cls()
-            io.msg("Welcome to the shop!\n"+
-            "Buy equipment, consumables and other items here.\n"+
-            "You can also sell items, but only for half their value.")
+            io.msg("""
+                Welcome to the shop!
+                Buy equipment, consumables and other items here.
+                You can also sell items, but only for half their value.
+            """)
             c = io.menu("What do you want to do?", ["Buy", "Sell", "Leave"])
             io.cls()
             if c == 0:

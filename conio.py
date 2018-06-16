@@ -1,10 +1,11 @@
 '''Module providing high-level input/output functionality'''
 
 import os
+from textwrap import dedent
 
 def msg(msg):
     """Prints a single- or multi lined message to the screen."""
-    print(msg)
+    print(dedent(msg.strip('\n')))
 
 def text_in(prompt):
     """Prompt the user to input a text input."""
