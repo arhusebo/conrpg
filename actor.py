@@ -45,7 +45,7 @@ class Actor():
         return self.hp == 0
 
     def get_inventory_item_names(self):
-        return [item.name for name in self.inventory]
+        return [item.name for item in self.inventory]
 
     def set_attributes(self, level):
         """Sets actor stats based on level"""
@@ -67,7 +67,7 @@ class Player(Actor):
 
     def check_levelup(self):
         return self.exp > self.get_exp_next_level()
-    
+
     def levelup(self):
         while self.exp > self.get_exp_next_level():
             self.level += 1

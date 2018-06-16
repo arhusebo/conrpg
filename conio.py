@@ -119,7 +119,7 @@ def progress_bar(value, value_max, length, label="", display_values=False):
             length = len(display_text)
         for i in range(len(display_text)):
             char_list[int(len(bar)/2-len(display_text)/2+i)]=display_text[i]
-        bar = "".join(charList)
+        bar = "".join(char_list)
     header = " "
     header += " "*int(len(bar)/2-len(label)/2)
     header += label

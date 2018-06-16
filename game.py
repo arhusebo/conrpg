@@ -42,7 +42,7 @@ class Game():
                 4: self.battle,
                 5: exit_town,
             }.get(c, lambda: None)()
-			
+
         io.cls()
 
     # Player Stats screen
@@ -61,12 +61,12 @@ class Game():
 
             io.msg("\t ~ " + self.player.name + " ~\n")
             io.table([  ["Level", self.player.level],
-                        ["HP", str(self.player.hp)+"/"+str(self.player.hpMax)],
+                        ["HP", str(self.player.hp)+"/"+str(self.player.hp_max)],
                         ["Attack", str(self.player.attack) + " (+" + str(self.player.get_bonus_attack()) + ")"],
                         ["Defense", str(self.player.defense) + " (+" + str(self.player.get_bonus_defense()) + ")"]
             ])
             io.skip_line()
-            io.progressBar(self.player.exp, self.player.get_exp_next_level(), 50, "Experience",True)
+            io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, "Experience",True)
 
             if io.bin_choice("\nGo back?") == True:
                 back = True

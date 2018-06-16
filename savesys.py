@@ -13,7 +13,7 @@ def save_game(path, player):
     data['attack'] = player.attack
     data['defense'] = player.defense
     data['inventory'] = player.get_inventory_item_names()
-    data['inventory_slots'] = player.inventorySlots
+    data['inventory_slots'] = player.inventory_slots
     data['base_hp'] = player.base_hp
     data['base_attack'] = player.base_attack
     data['base_defense'] = player.base_defense
@@ -43,7 +43,7 @@ def load_game(path, player, items):
     player.hp = data.get('hp', 1)
     player.attack = data.get('attack', 0)
     player.defense = data.get('defense', 0)
-    player.inventory = inventoryItems
+    player.inventory = inventory_items
     player.inventorySlots = data.get('inventory_slots', [])
     player.base_hp = data.get('base_hp', 1)
     player.base_attack = data.get('base_attack', 0)
