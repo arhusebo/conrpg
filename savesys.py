@@ -44,7 +44,7 @@ def load_game(path, player, items):
     player.attack = data.get('attack', 0)
     player.defense = data.get('defense', 0)
     player.inventory = inventory_items
-    player.inventorySlots = data.get('inventory_slots', [])
+    player.inventory_slots = data.get('inventory_slots', [])
     player.base_hp = data.get('base_hp', 1)
     player.base_attack = data.get('base_attack', 0)
     player.base_defense = data.get('base_defense', 0)
