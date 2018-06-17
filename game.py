@@ -2,6 +2,7 @@
 
 import random
 import json
+import time
 import conio as io
 from actor import Player, Monster
 from item import *
@@ -128,6 +129,8 @@ class Game():
     def shop(self):
         back = False
         while not back:
+            io.msg("Entering the marketplace...")
+            time.sleep(2)
             io.cls()
             io.msg("""
                 Welcome to the shop!
@@ -177,10 +180,14 @@ class Game():
                         del self.player.inventory[cs]
             elif c == 2:
                 back = True
+        io.msg("Leaving the marketplace...")
+        time.sleep(2)
         io.cls()
 
     # Healing screen
     def healing(self):
+        io.msg("Visiting the healing temple...")
+        time.sleep(2)
         io.cls()
         back = False
         while not back:
@@ -196,10 +203,14 @@ class Game():
             else:
                 if io.bin_choice("Go back?"):
                     back = True
+            io.msg("Leaving the temple...")
+            time.sleep(2)
             io.cls()
 
     # Battle screen
     def battle(self):
+        io.msg("Delving into the dungeon...")
+        time.sleep(2)
         io.cls()
         back = False
         enemies_at_level = []
@@ -222,8 +233,11 @@ class Game():
             io.cls()
             if c == 0:
                 if not battle.is_battle_over():
+                    time.sleep(.5)
                     io.msg("You attack and hit the " + battle.monster.name + " for " + str(battle.player_attack()) + " HP")
+                    time.sleep(1)
                     io.msg(battle.monster.name + " attacks and hits you for " + str(battle.monster_attack()) + " HP")
+                    time.sleep(1)
                     if(battle.monster.is_dead()):
                         io.msg(battle.monster.name + " dies. You are victorious!")
                         io.msg("{} experience gained.".format(battle.award_player_exp()))
@@ -240,6 +254,8 @@ class Game():
                 self.stats()
             elif c == -1:
                 back = True
+        io.msg("Returning to town...")
+        time.sleep(2)
         io.cls()
 
     # Below is non-ingame related parts
