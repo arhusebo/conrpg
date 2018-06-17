@@ -104,7 +104,7 @@ class Game():
         while not back:
             io.cls()
             items = []
-            display_ist = []
+            display_list = []
             for i, item in enumerate(self.player.inventory):
                 if item.consumable:
                     items.append(item)
