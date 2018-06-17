@@ -3,6 +3,32 @@
 import os
 from textwrap import dedent
 
+class Graphics:
+    """Instantiable class for loading and displaying UTF-8 encoded graphics"""
+    def __init__(self, path):
+        self.path = path
+
+    def load(self):
+        self.data = {}
+        with open(self.path, 'r', encoding='utf-8') as f:
+            self.data_raw = f.read()
+            for d in self.data_raw.split('<')[1:]:
+                data = d.split('>')
+                self.data.update({data[0]: data[1]})
+
+    def draw(self, name):
+        print(self.data[name])
+
+    def list_graphics(self):
+        out = ""
+        nl = '\n'
+        for key in self.data.keys():
+            out += dedent(f"""{key}
+            height: {self.data[key].count(''.join(nl))}
+            width:  {len(max(self.data[key].split(nl)))}
+            """)
+        print(out)
+
 def msg(msg):
     """Prints a single- or multi lined message to the screen."""
     print(dedent(msg.strip('\n')))
