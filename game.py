@@ -17,6 +17,9 @@ class Game():
         self.monsters = self.import_from_json("data/monsters.json")
         self.player = None
 
+        self.gfx = io.Graphics("data/graphics.txt")
+        self.gfx.load()
+
     def import_from_json(self, path):
         with open(path, 'r') as f:
             return json.loads(f.read())
@@ -33,6 +36,7 @@ class Game():
             nonlocal in_town
             in_town = False
         while(in_town):
+            self.gfx.draw('town')
             c = io.menu("What do you want to do?", ["Character Stats", "Inventory", "Shop", "Healing", "Enter Dungeon (Battle)", "Main Menu"])
             {
                 0: self.stats,
@@ -130,6 +134,7 @@ class Game():
                 Buy equipment, consumables and other items here.
                 You can also sell items, but only for half their value.
             """)
+            self.gfx.draw('shop')
             c = io.menu("What do you want to do?", ["Buy", "Sell", "Leave"])
             io.cls()
             if c == 0:
@@ -179,6 +184,7 @@ class Game():
         io.cls()
         back = False
         while not back:
+            self.gfx.draw('healer')
             io.msg("You have {}/{} HP".format(self.player.hp, self.player.hp_max))
             if io.bin_choice("Restore 100 HP? (10 gold)"):
                 if self.player.hp < self.player.hp_max:
