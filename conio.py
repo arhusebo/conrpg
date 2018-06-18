@@ -30,9 +30,9 @@ class Graphics:
             """)
         print(out)
 
-def msg(msg):
+def msg(msg, end='\n'):
     """Prints a single- or multi lined message to the screen."""
-    print(dedent(msg.strip('\n')))
+    print(dedent(msg.strip('\n')), end=end)
 
 def text_in(prompt):
     """Prompt the user to input a text input."""
@@ -92,6 +92,32 @@ def menu(prompt, choices, abort=None):
             return choice_map[choice_key]
         msg("Please enter a valid choice")
 
+def map_menu(prompt, choices):
+    """Prompt the user to input a numeral menu choice.
+
+    Parameters:
+    prompt -- prompt string
+    choices -- list of strings
+    abort -- string indicating an additional abort choice
+
+    Returns:
+    index of selected choice, -1 if aborted
+    """
+    msg(prompt)
+    underline = lambda c: '\033[4m'+c+'\033[0m'
+    choice_map = {}
+    for n, key in enumerate(choices):
+        i = key.index('*')
+        k = key[i+1]
+        choice_map[str(n+1)] = choice_map[k.lower()] = choice_map[k.upper()] = key
+        print(f"  ({n+1}) "+key[:i]+underline(k)+key[i+2:])
+    skip_line()
+    while True:
+        choice_key = text_in("> ")
+        if choice_key in choice_map:
+            return choice_map[choice_key]
+        msg("Please enter a valid choice")
+        
 def skip_line(amount=1):
     print('\n'*amount, end='')
 

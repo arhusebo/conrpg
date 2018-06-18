@@ -46,7 +46,7 @@ class Game():
                 "Enter Dungeon (Battle)": self.battle,
                 "Main menu"       : exit_town,
             }
-            c = io.menu("What do you want to do?", list(options.keys()))
+            c = io.menu("What do you want to do?", options.keys())
             options.get(c, lambda: None)()
 
         io.cls()
@@ -258,21 +258,22 @@ class Game():
     # Main menu screen and highest parent
     def main_menu(self):
         io.cls()
-        io.msg("conrpg v1.0 by arhusebo")
+        io.msg("conrpg v1.1 by arhusebo & evva")
+        io.skip_line()
         running = True
         def exit_game():
             nonlocal running
             running = False
             io.msg("Exiting...")
-        while running == True:
+        while running:
             options = {
-                "New Game"  : self.mm_new_game,
-                "Load Game" : self.mm_load_game,
-                "Save Game" : self.mm_save_game,
-                "About"     : self.mm_about,
-                "Exit"      : exit_game,
+                "*New Game"  : self.mm_new_game,
+                "*Load Game" : self.mm_load_game,
+                "*Save Game" : self.mm_save_game,
+                "*About"     : self.mm_about,
+                "*Exit"      : exit_game,
             }
-            c = io.menu("Main menu", list(options.keys()))
+            c = io.map_menu("Main menu", options.keys())
             options.get(c, lambda: None)()
 
     # Main Menu/New Game screen
