@@ -72,18 +72,20 @@ def menu(prompt, choices, abort=None):
     skip_line()
     msg(prompt)
     skip_line()
+    
+    choice_map = {}
     for i, choice in enumerate(choices):
-        print("  {} - {}".format(str(i+1), choice))
-    if abort is not None:
+        choice_map[i+1] = choice
+        print(f"  {i+1} - {choice}")
+    if abort:
+        choice_map[len(choices)+1] = abort
         skip_line()
-        print("  {} - {}".format(str(len(choices)+2), abort))
+        print(f"  {len(choices)+1} - {abort}")
     skip_line()
     while True:
-        choice = int(num_in("> ")-1)
-        if choice >= 0 and choice < len(choices):
-            return choice
-        elif choice == len(choices)+1:
-            return -1
+        choice_key = int(num_in("> "))
+        if choice_map.get(choice_key):
+            return choice_map[choice_key]
         msg("Please enter a valid choice")
 
 def skip_line(amount=1):
@@ -135,14 +137,14 @@ def progress_bar(value, value_max, length, label="", display_values=False):
     label -- bar label
     display_values -- displays values and percentage on bar if True
     """
-    bar = ""
-    bar += int(length*(value/value_max))*"="
-    bar += int(length-length*(value/value_max))*"-"
+    bar = int(length*(value/value_max))*"="
+    bar = bar.ljust(length, "-")
     if display_values:
-        display_text = "{}/{}{}({}%)".format(value, value_max, bar[int(length/2)], 100*round(value/value_max, 4))
+        display_text = f"{value}/{value_max}{bar[int(length/2)]}({100*value/value_max:.1f}%)"
         char_list = list(bar)
         if length < len(display_text):
             length = len(display_text)
+        #FIX next part is unreadable
         for i in range(len(display_text)):
             char_list[int(len(bar)/2-len(display_text)/2+i)]=display_text[i]
         bar = "".join(char_list)
@@ -150,7 +152,7 @@ def progress_bar(value, value_max, length, label="", display_values=False):
     header += " "*int(len(bar)/2-len(label)/2)
     header += label
     print(header)
-    print("["+bar+"]")
+    print(f"[{bar}]")
 
 def cls():
     """Clears the screen"""

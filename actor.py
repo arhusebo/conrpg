@@ -4,7 +4,7 @@ class Actor():
         self.name = "Actor"
         self.level = 1
         self.gold =  0
-        self.inventory = []
+        self.inventory = {}
         self.inventory_slots = 0
 
         self.base_hp = 1
@@ -25,7 +25,7 @@ class Actor():
         True if added successfully, False otherwise
         """
         if len(self.inventory) < self.inventory_slots:
-            self.inventory.append(item)
+            self.inventory[item.name] = item
             return True
         return False
 
@@ -36,10 +36,10 @@ class Actor():
         self.hp = max(0, self.hp - amount)
 
     def get_bonus_attack(self):
-        return sum(item.attack for item in self.inventory if item.attack)
+        return sum(item.attack for item in self.inventory.values() if item.attack)
 
     def get_bonus_defense(self):
-        return sum(item.defense for item in self.inventory if item.defense)
+        return sum(item.defense for item in self.inventory.values() if item.defense)
 
     def is_dead(self):
         return self.hp == 0

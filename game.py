@@ -37,16 +37,17 @@ class Game():
             nonlocal in_town
             in_town = False
         while(in_town):
-            self.gfx.draw('town')
-            c = io.menu("What do you want to do?", ["Character Stats", "Inventory", "Shop", "Healing", "Enter Dungeon (Battle)", "Main Menu"])
-            {
-                0: self.stats,
-                1: self.inventory,
-                2: self.shop,
-                3: self.healing,
-                4: self.battle,
-                5: exit_town,
-            }.get(c, lambda: None)()
+            #self.gfx.draw('town')
+            options = {
+                "Character stats" : self.stats,
+                "Inventory"       : self.inventory,
+                "Shop"            : self.shop,
+                "Healing"         : self.healing,
+                "Enter Dungeon (Battle)": self.battle,
+                "Main menu"       : exit_town,
+            }
+            c = io.menu("What do you want to do?", list(options.keys()))
+            options.get(c, lambda: None)()
 
         io.cls()
 
@@ -55,20 +56,13 @@ class Game():
         back = False
         while not back:
             io.cls()
-			#FIX? this is a method in the actor class
-            bonus_attack = 0
-            bonus_defense = 0
-            for item in self.player.inventory:
-                if item.attack:
-                    bonus_attack += item.attack
-                if item.defense:
-                    bonus_defense += item.defense
 
             io.msg("\t ~ " + self.player.name + " ~\n")
-            io.table([  ["Level", self.player.level],
-                        ["HP", str(self.player.hp)+"/"+str(self.player.hp_max)],
-                        ["Attack", str(self.player.attack) + " (+" + str(self.player.get_bonus_attack()) + ")"],
-                        ["Defense", str(self.player.defense) + " (+" + str(self.player.get_bonus_defense()) + ")"]
+            io.table([
+                ["Level", self.player.level],
+                ["HP", f"{self.player.hp}/{self.player.hp_max}"],
+                ["Attack", f"{self.player.attack} (+{self.player.get_bonus_attack()})"],
+                ["Defense", f"{self.player.defense} (+{self.player.get_bonus_defense()})"]
             ])
             io.skip_line()
             io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, "Experience",True)
@@ -85,17 +79,19 @@ class Game():
             io.msg("Inventory")
             io.skip_line()
             item_display_list = [["Item", "Value", "Description"]]
-            for item in self.player.inventory:
+            for item in self.player.inventory.values():
                 item_display_list.append([item.name, str(item.value), item.info])
             empty_slots = self.player.inventory_slots-len(self.player.inventory)
             for s in range(empty_slots):
                 item_display_list.append(["[  EMPTY  ]", "---", "---"])
             io.table(item_display_list)
             io.msg("\n" + str(self.player.gold) + " gold\n")
+            options = {
+            }
             c = io.menu("Actions", ["Use item", "Back"])
-            if c==0:
+            if c=="Use item":
                 self.use_consumable()
-            elif c==1:
+            elif c=="Back":
                 back = True
 
         io.cls()
@@ -106,17 +102,17 @@ class Game():
             io.cls()
             items = []
             display_list = []
-            for i, item in enumerate(self.player.inventory):
+            for i, item in enumerate(self.player.inventory.values()):
                 if item.consumable:
                     items.append(item)
                     display_list.append(item.name)
             if len(items) > 0:
                 c = io.menu("Use item", display_list, "Cancel")
-                if c>=0:
+                if c in display_list:
                     restore_values = items[c].restore_values
                     if 'hp' in restore_values:
                         self.player.heal(restore_values['hp'])
-                    self.player.inventory.remove(items[c])
+                    del self.player.inventory[item.name]
                     back = True
             else:
                 io.msg("You have no consumables available.")
@@ -140,16 +136,16 @@ class Game():
             self.gfx.draw('shop')
             c = io.menu("What do you want to do?", ["Buy", "Sell", "Leave"])
             io.cls()
-            if c == 0:
+            if c == "Buy":
                 done = False
                 while not done:
                     io.cls()
                     cs = io.menu("Buy item\tGold: {}".format(self.player.gold), self.ITEMS_SHOP, "Back")
-                    if cs == -1:
+                    if cs == "Back":
                         done = True
                         break
                     io.cls()
-                    item_name = self.ITEMS_SHOP[cs]
+                    item_name = cs
                     item_data = self.items.get(item_name)
                     item = Item(item_name, **item_data)
                     verify = io.bin_choice("Buy {} for {} gold?".format(item_name, item.value))
@@ -163,12 +159,12 @@ class Game():
                             continue
                         if io.bin_choice("Not enough gold. Return?"):
                             done = True
-            elif c == 1:
+            elif c == "Sell":
                 done = False
                 while not done:
                     io.cls()
                     cs = io.menu("Sell item", self.player.get_inventory_item_names(), "Back")
-                    if cs == -1:
+                    if cs == "Back":
                         done = True
                         break
                     io.cls()
@@ -178,7 +174,7 @@ class Game():
                     if verify == True:
                         self.player.gold += sell_value
                         del self.player.inventory[cs]
-            elif c == 2:
+            elif c == "Leave":
                 back = True
         io.msg("Leaving the marketplace...")
         time.sleep(2)
@@ -229,9 +225,9 @@ class Game():
             io.skip_line(2)
             io.msg(battle.player.name + "'s HP: " + str(battle.player.hp) + "/" + str(battle.player.hp_max))
             io.msg(battle.monster.name + "'s HP: " + str(battle.monster.hp) + "/" + str(battle.monster.hp_max))
-            c = io.menu("Choose an option", ["Attack", "Invetory", "Stats"], "Leave")
+            c = io.menu("Choose an option", ["Attack", "Inventory", "Stats"], "Leave")
             io.cls()
-            if c == 0:
+            if c == "Attack":
                 if not battle.is_battle_over():
                     time.sleep(.5)
                     io.msg("You attack and hit the " + battle.monster.name + " for " + str(battle.player_attack()) + " HP")
@@ -248,11 +244,11 @@ class Game():
                         io.msg(battle.player.name + "dies. You have been defeated!")
                 else:
                     io.msg("The battle has ended.")
-            elif c == 1:
+            elif c == "Inventory":
                 self.inventory()
-            elif c == 2:
+            elif c == "Stats":
                 self.stats()
-            elif c == -1:
+            elif c == "Leave":
                 back = True
         io.msg("Returning to town...")
         time.sleep(2)
@@ -269,14 +265,15 @@ class Game():
             running = False
             io.msg("Exiting...")
         while running == True:
-            c = io.menu("Main menu", ["New Game", "Load Game", "Save Game", "About", "Exit"])
-            {
-                0: self.mm_new_game,
-                1: self.mm_load_game,
-                2: self.mm_save_game,
-                3: self.mm_about,
-                4: exit_game,
-            }.get(c, lambda: None)()
+            options = {
+                "New Game"  : self.mm_new_game,
+                "Load Game" : self.mm_load_game,
+                "Save Game" : self.mm_save_game,
+                "About"     : self.mm_about,
+                "Exit"      : exit_game,
+            }
+            c = io.menu("Main menu", list(options.keys()))
+            options.get(c, lambda: None)()
 
     # Main Menu/New Game screen
     def mm_new_game(self):
