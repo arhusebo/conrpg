@@ -46,15 +46,21 @@ def num_in(prompt):
         except ValueError:
             print("Please enter a number!")
 
-def bin_choice(prompt):
+def bin_choice(prompt, default='y'):
     """Prompt the user to input a binary choice (y/n)."""
-    choice = ''
-    while 1:
-        choice = input("{} (y/n) ".format(prompt))
-        if choice in {'y', 'n'}: break
-        msg("Invalid answer.")
+    choices = {
+        'y' : "(Y/n)",
+        'n' : "(y/N)",
+    }.get(default, "(y/n)")
     
-    return choice == 'y'
+    choice = None
+    while 1:
+        choice = input(f"{prompt} {choices}: ").lower()
+        if default and choice == '':
+            choice = default
+        if choice in {'y', 'n'}:
+            return choice == 'y'
+        msg("Invalid answer.")
 
 def menu(prompt, choices, abort=None):
     """Prompt the user to input a numeral menu choice.
@@ -93,41 +99,27 @@ def table(data, spacing=5):
     """Constructs and displays a table from data given
 
     Parameters
-    data -- 2D list containing data (data[row][col])
+    data    -- 2D list containing data (data[row][col])
     spacing -- additional column spacing
     """
-    rows = len(data)
-    cols = 0
-
-    # Get amount of rows
-    for row in range(rows):
-        cols = len(data[row])
-    col_widths = [0]*cols
 
     # Get minimum width for each column
-    for row in range(rows):
-        for col in range(cols):
-            if len(str(data[row][col])) > col_widths[col]:
-                col_widths[col] = len(str(data[row][col]))
+    col_widths = [len(max(col, key=lambda x: len(str(x)))) for col in zip(*data)]
 
     # Format and print rows
-    for row in range(rows):
-        rowstr = ""
-        for col in range(cols):
-            if col == cols-1:
-                rowstr += "{}"
-            else:
-                rowstr += "{:<"+str(col_widths[col]+spacing)+"}"
-        print(rowstr.format(*data[row]))
+    for row in data:
+        for col, w in zip(row, col_widths):
+            print(str(col).ljust(w+spacing), end='')
+        print() #newline
 
 def progress_bar(value, value_max, length, label="", display_values=False):
     """Constructs and displays a progress bar based on given value and max value.
 
     Parameters:
-    value -- current value
-    value_max -- maximum value
-    length -- bar length
-    label -- bar label
+    value          -- current value
+    value_max      -- maximum value
+    length         -- bar length
+    label          -- bar label
     display_values -- displays values and percentage on bar if True
     """
     progress_ratio = value/value_max
@@ -145,11 +137,11 @@ def progress_bar(value, value_max, length, label="", display_values=False):
                 + progress_percent
                 + bar[mid+1+len(progress_percent):]
             )
-        except Exception as e:
+        except Exception:
             # Fails if bar is too short
             pass
             
-    header = label.rjust(mid+m.ceil(len(label)/2)+1, " ")
+    header = label.rjust(mid+m.ceil(len(label)/2)+1)
     print(header)
     print(f"[{bar}]")
 

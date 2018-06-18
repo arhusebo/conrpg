@@ -80,7 +80,7 @@ class Game():
             io.skip_line()
             item_display_list = [["Item", "Value", "Description"]]
             for item in self.player.inventory.values():
-                item_display_list.append([item.name, str(item.value), item.info])
+                item_display_list.append([item.name, item.value, item.info])
             empty_slots = self.player.inventory_slots-len(self.player.inventory)
             for s in range(empty_slots):
                 item_display_list.append(["[  EMPTY  ]", "---", "---"])
