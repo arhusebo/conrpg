@@ -18,7 +18,9 @@ class Game():
         self.monsters = self.import_from_json("data/monsters.json")
         self.player = None
 
-        self.gfx = io.Graphics("data/graphics.txt")
+        self.settings = Settings("config/settings.cfg")
+
+        self.gfx = io.Graphics("data/graphics.txt", self.settings.read('graphics'))
         self.gfx.load()
 
     def import_from_json(self, path):
@@ -37,7 +39,7 @@ class Game():
             nonlocal in_town
             in_town = False
         while(in_town):
-            #self.gfx.draw('town')
+            self.gfx.draw('town')
             options = {
                 "Character stats" : self.stats,
                 "Inventory"       : self.inventory,

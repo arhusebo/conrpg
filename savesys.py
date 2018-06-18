@@ -1,6 +1,27 @@
 import os
 import json
+import configparser
 from item import Item
+
+class Settings:
+    """Instantiable class for reading and writing settings"""
+    defaults = {'graphics':'ascii'}
+    def __init__(self, path):
+        self.path = path
+        self.cfg = configparser.ConfigParser()
+        self.data = self.cfg.read(path)
+        if not 'SETTINGS' in self.cfg.sections():
+            self.cfg['SETTINGS'] = Settings.defaults
+            with open(path, 'w') as f:
+                self.cfg.write(f)
+
+    def read(self, key):
+        return self.cfg['SETTINGS'][key]
+
+    def write(self, key, value):
+        self.cfg['SETTINGS'][key] = value
+        with open(self.path, 'w') as f:
+            self.cfg.write(f)
 
 def save_game(path, player):
     data = {}

@@ -6,19 +6,34 @@ from textwrap import dedent
 
 class Graphics:
     """Instantiable class for loading and displaying UTF-8 encoded graphics"""
-    def __init__(self, path):
+
+    charsets = {'unicode':u' \u2591\u2592\u2593\u2588',
+                'ascii':' '+chr(9617)+chr(9618)+chr(9619)+chr(9608),
+                'ascii2':' .:-=+*#%@'}
+
+    def __init__(self, path, charset):
         self.path = path
+        if charset in Graphics.charsets:
+            self.charset = Graphics.charsets[charset]
+        else:
+            self.charset = self.charsets['ascii']
 
     def load(self):
         self.data = {}
-        with open(self.path, 'r', encoding='utf-8') as f:
+        with open(self.path, 'r') as f:
             self.data_raw = f.read()
             for d in self.data_raw.split('<')[1:]:
                 data = d.split('>')
                 self.data.update({data[0]: data[1]})
 
     def draw(self, name):
-        print(self.data[name])
+        out = ""
+        lines = self.data[name].split('\n')
+        for line in lines:
+            for i in line:
+                out += self.charset[int((len(self.charset)-1)*int(i)/9)]
+            out += '\n'
+        print(out)
 
     def list_graphics(self):
         out = ""
@@ -52,7 +67,7 @@ def bin_choice(prompt, default='y'):
         'y' : "(Y/n)",
         'n' : "(y/N)",
     }.get(default, "(y/n)")
-    
+
     choice = None
     while 1:
         choice = input(f"{prompt} {choices}: ").lower()
@@ -76,7 +91,7 @@ def menu(prompt, choices, abort=None):
     skip_line()
     msg(prompt)
     skip_line()
-    
+
     choice_map = {}
     for i, choice in enumerate(choices):
         choice_map[i+1] = choice
@@ -117,7 +132,7 @@ def map_menu(prompt, choices):
         if choice_key in choice_map:
             return choice_map[choice_key]
         msg("Please enter a valid choice")
-        
+
 def skip_line(amount=1):
     print('\n'*amount, end='')
 
@@ -150,7 +165,7 @@ def progress_bar(value, value_max, length, label="", display_values=False):
     """
     progress_ratio = value/value_max
     bar = ("="*m.floor(length*progress_ratio)).ljust(length, "-")
-    
+
     if display_values:
         progress = f"{value}/{value_max}"
         progress_percent = f"({100*progress_ratio:.1f}%)"
@@ -166,7 +181,7 @@ def progress_bar(value, value_max, length, label="", display_values=False):
         except Exception:
             # Fails if bar is too short
             pass
-            
+
     header = label.rjust(mid+m.ceil(len(label)/2)+1)
     print(header)
     print(f"[{bar}]")
