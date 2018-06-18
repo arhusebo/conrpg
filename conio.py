@@ -1,6 +1,7 @@
-'''Module providing high-level input/output functionality'''
+"""Module providing high-level input/output functionality"""
 
 import os
+import math as m
 from textwrap import dedent
 
 class Graphics:
@@ -35,28 +36,25 @@ def msg(msg):
 
 def text_in(prompt):
     """Prompt the user to input a text input."""
-    s = input(prompt)
-    return s
+    return input(prompt)
 
 def num_in(prompt):
     """Prompt the user to input a numeral input."""
-    while(True):
+    while True:
         try:
-            n = float(input(prompt))
+            return float(input(prompt))
         except ValueError:
             print("Please enter a number!")
-        else:
-            return n
 
 def bin_choice(prompt):
     """Prompt the user to input a binary choice (y/n)."""
-    while True:
+    choice = ''
+    while 1:
         choice = input("{} (y/n) ".format(prompt))
-        if choice == ('y'):
-            return True
-        elif choice == ('n'):
-            return False
+        if choice in {'y', 'n'}: break
         msg("Invalid answer.")
+    
+    return choice == 'y'
 
 def menu(prompt, choices, abort=None):
     """Prompt the user to input a numeral menu choice.
@@ -78,23 +76,18 @@ def menu(prompt, choices, abort=None):
         choice_map[i+1] = choice
         print(f"  {i+1} - {choice}")
     if abort:
-        choice_map[len(choices)+1] = abort
         skip_line()
+        choice_map[len(choices)+1] = abort
         print(f"  {len(choices)+1} - {abort}")
     skip_line()
     while True:
         choice_key = int(num_in("> "))
-        if choice_map.get(choice_key):
+        if choice_key in choice_map:
             return choice_map[choice_key]
         msg("Please enter a valid choice")
 
 def skip_line(amount=1):
-    """Skips amount amount of lines"""
-    if amount > 0:
-        out = ""
-        for line in range(amount-1):
-            out += '\n'
-        print(out)
+    print('\n'*amount, end='')
 
 def table(data, spacing=5):
     """Constructs and displays a table from data given
@@ -137,20 +130,26 @@ def progress_bar(value, value_max, length, label="", display_values=False):
     label -- bar label
     display_values -- displays values and percentage on bar if True
     """
-    bar = int(length*(value/value_max))*"="
-    bar = bar.ljust(length, "-")
+    progress_ratio = value/value_max
+    bar = ("="*m.floor(length*progress_ratio)).ljust(length, "-")
+    
     if display_values:
-        display_text = f"{value}/{value_max}{bar[int(length/2)]}({100*value/value_max:.1f}%)"
-        char_list = list(bar)
-        if length < len(display_text):
-            length = len(display_text)
-        #FIX next part is unreadable
-        for i in range(len(display_text)):
-            char_list[int(len(bar)/2-len(display_text)/2+i)]=display_text[i]
-        bar = "".join(char_list)
-    header = " "
-    header += " "*int(len(bar)/2-len(label)/2)
-    header += label
+        progress = f"{value}/{value_max}"
+        progress_percent = f"({100*progress_ratio:.1f}%)"
+        mid = m.floor(length/2)
+        try:
+            # Inserts progress inside bar
+            bar = (bar[:mid-len(progress)]
+                + progress
+                + bar[mid:mid+1]
+                + progress_percent
+                + bar[mid+1+len(progress_percent):]
+            )
+        except Exception as e:
+            # Fails if bar is too short
+            pass
+            
+    header = label.rjust(mid+m.ceil(len(label)/2)+1, " ")
     print(header)
     print(f"[{bar}]")
 
