@@ -7,6 +7,7 @@ class Settings:
     """Instantiable class for reading and writing settings"""
     defaults = {'graphics':'ascii'}
     def __init__(self, path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         self.path = path
         self.cfg = configparser.ConfigParser()
         self.data = self.cfg.read(path)
