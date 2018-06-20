@@ -307,6 +307,7 @@ class Game():
         io.skip_line()
         running = True
         while running:
+            self.gfx.draw('title')
             options = {
                 "*New Game"  : self.mm_new_game,
                 "*Load Game" : self.mm_load_game,
