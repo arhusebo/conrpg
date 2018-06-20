@@ -5,7 +5,7 @@ from item import Item
 
 class Settings:
     """Instantiable class for reading and writing settings"""
-    defaults = {'graphics':'ascii'}
+    defaults = {'graphics': 'ascii'}
     def __init__(self, path):
         self.path = path
         self.cfg = configparser.ConfigParser()
@@ -33,7 +33,7 @@ def save_game(path, player):
     data['hp'] = player.hp
     data['attack'] = player.attack
     data['defense'] = player.defense
-    data['inventory'] = player.get_inventory_item_names()
+    data['inventory'] = list(player.inventory.keys())
     data['inventory_slots'] = player.inventory_slots
     data['base_hp'] = player.base_hp
     data['base_attack'] = player.base_attack
@@ -65,7 +65,7 @@ def load_game(path, player, items):
     player.attack = data.get('attack', 0)
     player.defense = data.get('defense', 0)
     player.inventory = inventory_items
-    player.inventory_slots = data.get('inventory_slots', [])
+    player.inventory_slots = data.get('inventory_slots', {})
     player.base_hp = data.get('base_hp', 1)
     player.base_attack = data.get('base_attack', 0)
     player.base_defense = data.get('base_defense', 0)

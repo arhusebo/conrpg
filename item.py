@@ -8,3 +8,10 @@ class Item():
         self.attack = kwargs.get('attack', 0)
         self.defense = kwargs.get('defense', 0)
         self.restore_values = kwargs.get('restore', None)
+
+class Weapon():
+    NotImplemented
+    
+class Potion():
+    NotImplemented
+    

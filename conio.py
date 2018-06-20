@@ -3,6 +3,9 @@
 import os
 import math as m
 from textwrap import dedent
+import listener
+
+underline = lambda c: '\033[4m'+c+'\033[0m'
 
 class Graphics:
     """Instantiable class for loading and displaying UTF-8 encoded graphics"""
@@ -49,6 +52,12 @@ def msg(msg, end='\n'):
     """Prints a single- or multi lined message to the screen."""
     print(dedent(msg.strip('\n')), end=end)
 
+def acknowledge(msg='', end='\n'):
+    """Prints a single- or multi lined message to the screen."""
+    print(dedent(msg.strip('\n')), end=end)
+    print("\nPress any key to return.")
+    listener.get_key()
+    
 def text_in(prompt):
     """Prompt the user to input a text input."""
     return input(prompt)
@@ -94,41 +103,48 @@ def menu(prompt, choices, abort=None):
 
     choice_map = {}
     for i, choice in enumerate(choices):
-        choice_map[i+1] = choice
+        choice_map[str(i+1)] = choice
         print(f"  {i+1} - {choice}")
     if abort:
         skip_line()
-        choice_map[len(choices)+1] = abort
-        print(f"  {len(choices)+1} - {abort}")
+        choice_map[str(len(choices)+1)] = choice_map['ESC'] = abort
+        print(f"  {len(choices)+1} - {abort} ({underline('Esc')})")
     skip_line()
     while True:
-        choice_key = int(num_in("> "))
+        choice_key = listener.get_key("> ")
         if choice_key in choice_map:
             return choice_map[choice_key]
         msg("Please enter a valid choice")
 
-def map_menu(prompt, choices):
+def map_menu(prompt, choices, abort=None):
     """Prompt the user to input a numeral menu choice.
 
     Parameters:
-    prompt -- prompt string
+    prompt  -- prompt string
     choices -- list of strings
-    abort -- string indicating an additional abort choice
+    abort   -- string indicating an additional abort choice
 
     Returns:
-    index of selected choice, -1 if aborted
+    selected choice
     """
     msg(prompt)
-    underline = lambda c: '\033[4m'+c+'\033[0m'
     choice_map = {}
-    for n, key in enumerate(choices):
+    for key in choices:
+        if key == abort: continue
         i = key.index('*')
         k = key[i+1]
-        choice_map[str(n+1)] = choice_map[k.lower()] = choice_map[k.upper()] = key
-        print(f"  ({n+1}) "+key[:i]+underline(k)+key[i+2:])
+        choice_map[k.lower()] = choice_map[k.upper()] = key
+        print(f"  - "+key[:i]+underline(k)+key[i+2:])
+    if abort:
+        i = abort.index('*')
+        k = abort[i+1]
+        choice_map[k.lower()] = choice_map[k.upper()] = choice_map['ESC'] = key
+        print(f"  - "+abort[:i]+underline(k)+abort[i+2:]+f" ({underline('Esc')})")
+    
     skip_line()
     while True:
-        choice_key = text_in("> ")
+        choice_key = listener.get_key("> ")
+        print(repr(choice_key))
         if choice_key in choice_map:
             return choice_map[choice_key]
         msg("Please enter a valid choice")
@@ -136,14 +152,14 @@ def map_menu(prompt, choices):
 def skip_line(amount=1):
     print('\n'*amount, end='')
 
-def table(data, spacing=5):
+def table(*data, spacing=5):
     """Constructs and displays a table from data given
 
     Parameters
     data    -- 2D list containing data (data[row][col])
     spacing -- additional column spacing
     """
-
+    
     # Get minimum width for each column
     col_widths = [len(max(col, key=lambda x: len(str(x)))) for col in zip(*data)]
 
