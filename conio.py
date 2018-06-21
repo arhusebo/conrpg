@@ -133,13 +133,13 @@ def map_menu(prompt, choices, abort=None):
         if key == abort: continue
         i = key.index('*')
         k = key[i+1]
-        choice_map[str(n)] = choice_map[k.lower()] = choice_map[k.upper()] = key
-        print(f"  {n}: "+key[:i]+underline(k)+key[i+2:])
+        choice_map[str(n+1)] = choice_map[k.lower()] = choice_map[k.upper()] = key
+        print(f"  {n+1}: "+key[:i]+underline(k)+key[i+2:])
     if abort:
         i = abort.index('*')
         k = abort[i+1]
-        choice_map[str(len(choices)-1)] = choice_map[k.lower()] = choice_map[k.upper()] = choice_map['ESC'] = key
-        print(f"  {len(choices)-1}: "+abort[:i]+underline(k)+abort[i+2:]+f" ({underline('Esc')})")
+        choice_map[str(len(choices))] = choice_map[k.lower()] = choice_map[k.upper()] = choice_map['ESC'] = key
+        print(f"  {len(choices)}: "+abort[:i]+underline(k)+abort[i+2:]+f" ({underline('Esc')})")
     
     skip_line()
     while True:

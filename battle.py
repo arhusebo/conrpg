@@ -19,9 +19,9 @@ class Battle():
         damage_raw = attacker.attack + attacker.get_bonus_attack()
         deviation = int(random.uniform(-damage_raw/4,damage_raw/4)+.5)
         damage_raw += deviation
-        defense = defender.defense + defender.get_bonus_defense()
-        if defense:
-            damage_points = int(damage_raw / (defender.defense + defender.get_bonus_defense()))
+        defence = defender.defence + defender.get_bonus_defence()
+        if defence:
+            damage_points = int(damage_raw / (defender.defence + defender.get_bonus_defence()))
         else:
             damage_points = damage_raw
         defender.damage(damage_points)

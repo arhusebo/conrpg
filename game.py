@@ -69,7 +69,7 @@ class Game():
             ["Level", self.player.level],
             ["HP", f"{self.player.hp}/{self.player.hp_max}"],
             ["Attack", f"{self.player.attack} (+{self.player.get_bonus_attack()})"],
-            ["Defense", f"{self.player.defense} (+{self.player.get_bonus_defense()})"]
+            ["Defence", f"{self.player.defence} (+{self.player.get_bonus_defence()})"]
         )
         io.skip_line()
         io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, "Experience",True)
@@ -113,18 +113,23 @@ class Game():
         consuming = True
         while consuming:
             io.cls()
-            items = self.player.inventory
-            display_list = list(self.player.inventory.keys())
-            
-            if len(items) > 0:
-                c = io.menu("Use item", self.player.inventory.keys(), "Cancel")
+        
+            from item import Consumable
+            consumables = [c for c in self.player.inventory.values() if isinstance(c, Consumable)]
+            consumable_names = [i.name for i in consumables]
+            if len(consumables) > 0:
+                choice = io.menu("Use item", consumable_names, "Cancel")
                 
                 #FIX subclass restorable items
-                if c in self.player.inventory.keys():
-                    restore_values = items[c].restore_values
-                    if 'hp' in restore_values:
-                        self.player.heal(restore_values['hp'])
-                    del self.player.inventory[item.name]
+                if choice in consumable_names:
+                    consumable = self.player.inventory[choice]
+                    self.player.heal(consumable.restore)
+                    io.msg(f"""
+                        You have healed yourself for {consumable.restore} hp.
+                        You now have {self.player.hp}/{self.player.hp_max} hp.
+                    """)
+                    del self.player.inventory[choice]
+                    io.acknowledge()
                 else:
                     consuming = False
             else:
@@ -135,17 +140,18 @@ class Game():
 
     # Shop screen
     def shop(self):
+        io.msg("Entering the marketplace...")
+        time.sleep(2)
         def buy():
             buying = True
             while buying:
                 io.cls()
-                cs = io.menu(f"Buy item\tGold: {self.player.gold}", self.ITEMS_SHOP, abort="Back")
-                if cs == "Back":
+                choice = io.menu(f"Buy item\tGold: {self.player.gold}", self.ITEMS_SHOP, abort="Back")
+                if choice == "Back":
                     buying = False
                     break
                 io.cls()
-                item_data = self.items.get(cs)
-                item = Item(cs, **item_data)
+                inventory_items[item_dict.name] = Item_constructor(name=choice)
                 accept_transaction = io.bin_choice(f"Buy {item.name} for {item.value} gold?")
                 if accept_transaction:
                     if self.player.gold >= item.value:
@@ -178,8 +184,6 @@ class Game():
         
         shopping = True
         while shopping:
-            io.msg("Entering the marketplace...")
-            time.sleep(2)
             io.cls()
             io.msg("""
                 Welcome to the shop!
@@ -254,7 +258,7 @@ class Game():
                 io.msg(f"{battle.award_player_exp()} experience gained.")
                 if self.player.check_levelup():
                     self.player.levelup()
-                    io.msg(f"{self.player.name} leveled up! You are now level {self.player.name}")
+                    io.msg(f"{self.player.name} leveled up! You are now level {self.player.level}")
                 
                 io.acknowledge()
                 return STATUS.EXIT
@@ -327,14 +331,14 @@ class Game():
         creating_char = True
         self.player = Player()
         while creating_char:
-            char_name = io.text_in("Choose a name for your Character: ")
+            char_name = io.text_in("Choose a name for your Character: ", abort=True)
             io.cls()
             io.msg("Character name: " + char_name)
             if io.bin_choice("\nFinish Character creation and start game?") == True:
                 self.player.name = char_name
                 self.player.base_hp = 100
                 self.player.base_attack = 10
-                self.player.base_defense = 10
+                self.player.base_defence = 10
                 self.player.set_attributes(level = 1)
                 self.player.exp = 0
                 self.player.gold = 300

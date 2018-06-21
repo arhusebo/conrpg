@@ -1,7 +1,7 @@
 import os
 import json
 import configparser
-from item import Item
+from item import Item_constructor
 
 class Settings:
     """Instantiable class for reading and writing settings"""
@@ -53,9 +53,9 @@ def load_game(path, player, items):
     else:
         return False
 
-    inventory_items = []
-    for item in data.get('inventory'):
-        inventory_items.append(Item(item, **items[item]))
+    inventory_items = {}
+    for item_name in data.get('inventory'):
+        inventory_items[item_name] = Item_constructor(item_name)
 
     player.name = data.get('name', "Player")
     player.level = data.get('level', 1)
@@ -64,11 +64,11 @@ def load_game(path, player, items):
     player.hp_max = data.get('hp_max', 1)
     player.hp = data.get('hp', 1)
     player.attack = data.get('attack', 0)
-    player.defense = data.get('defense', 0)
+    player.defence = data.get('defence', 0)
     player.inventory = inventory_items
     player.inventory_slots = data.get('inventory_slots', {})
     player.base_hp = data.get('base_hp', 1)
     player.base_attack = data.get('base_attack', 0)
-    player.base_defense = data.get('base_defense', 0)
+    player.base_defence = data.get('base_defence', 0)
 
     return True

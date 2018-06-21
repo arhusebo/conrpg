@@ -9,10 +9,10 @@ class Actor():
 
         self.base_hp = 1
         self.base_attack = 0
-        self.base_defense = 0
+        self.base_defence = 0
         self.hp = self.hp_max = self.base_hp
         self.attack = self.base_attack
-        self.defense = self.base_defense
+        self.defence = self.base_defence
 
     def add_item(self, item):
         """Tries to add item to actor inventory based on available inventory slots.
@@ -36,10 +36,12 @@ class Actor():
         self.hp = max(0, self.hp - amount)
 
     def get_bonus_attack(self):
-        return sum(item.attack for item in self.inventory.values() if item.attack)
+        from item import Weapon
+        return sum(item.attack for item in self.inventory.values() if isinstance(item, Weapon))
 
-    def get_bonus_defense(self):
-        return sum(item.defense for item in self.inventory.values() if item.defense)
+    def get_bonus_defence(self):
+        from item import Armour
+        return sum(item.defence for item in self.inventory.values() if isinstance(item, Armour))
 
     def is_dead(self):
         return self.hp == 0
@@ -51,7 +53,7 @@ class Actor():
         """Sets actor stats based on level"""
         self.level = level
         self.attack = self.base_attack + level - 1
-        self.defense = self.base_defense + level - 1
+        self.defence = self.base_defence + level - 1
         self.hp_max = self.base_hp + 10 * (level - 1)
         self.hp = self.hp_max
 
