@@ -7,6 +7,34 @@ import listener
 
 underline = lambda c: '\033[4m'+c+'\033[0m'
 
+class AdventureRenderer:
+    def __init__(self, adventure):
+        self.adventure = adventure
+
+    def draw_room(self):
+        room = self.adventure.get_current_room()
+        map_ = str(self.adventure.get_current_room())
+        out = ""
+        for y, row in enumerate(map_.split('\n')):
+            out += '\n\t'
+            for x, tile in enumerate(row):
+                if x == self.adventure.player_x and y == self.adventure.player_y:
+                    out += ' @'
+                else:
+                    out += {
+                        'w' : chr(9608)*2,
+                        'f' : '  ',
+                        'd' : chr(9617)*2
+                    }.get(tile, '??')
+        print(out)
+
+if __name__ == '__main__':
+    from adventure import Adventure
+    adv = Adventure()
+    adv_rnd = AdventureRenderer(adv)
+    adv.generate_map()
+    adv_rnd.draw_room()
+
 class Graphics:
     """Instantiable class for loading and displaying UTF-8 encoded graphics"""
 
@@ -57,7 +85,7 @@ def acknowledge(msg='', end='\n'):
     print(dedent(msg.strip('\n')), end=end)
     print("\nPress any key to return.")
     listener.get_key()
-    
+
 def text_in(prompt):
     """Prompt the user to input a text input."""
     return input(prompt)
@@ -140,7 +168,7 @@ def map_menu(prompt, choices, abort=None):
         k = abort[i+1]
         choice_map[str(len(choices))] = choice_map[k.lower()] = choice_map[k.upper()] = choice_map['ESC'] = key
         print(f"  {len(choices)}: "+abort[:i]+underline(k)+abort[i+2:]+f" ({underline('Esc')})")
-    
+
     skip_line()
     while True:
         choice_key = listener.get_key("> ")
@@ -159,7 +187,7 @@ def table(*data, spacing=5):
     data    -- 2D list containing data (data[row][col])
     spacing -- additional column spacing
     """
-    
+
     # Get minimum width for each column
     col_widths = [len(max(col, key=lambda x: len(str(x)))) for col in zip(*data)]
 
