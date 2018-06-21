@@ -8,6 +8,7 @@ import listener
 underline = lambda c: '\033[4m'+c+'\033[0m'
 
 class AdventureRenderer:
+
     def __init__(self, adventure):
         self.adventure = adventure
 
@@ -26,6 +27,35 @@ class AdventureRenderer:
                         'f' : '  ',
                         'd' : chr(9617)*2
                     }.get(tile, '??')
+        print(out)
+
+    def draw_map(self):
+        out = ""
+        for y, row in enumerate(self.adventure.map.tiles):
+            out += '\n\t'
+            for x, tile in enumerate(row):
+                if x == self.adventure.current_x and y == self.adventure.current_y:
+                    out += '@'
+                elif tile.variant == 'T':
+                    out += '$'
+                elif tile.variant == 'B':
+                    out += '!'
+                else:
+                    d = ''
+                    d = tile.connections
+                    out += {
+                        (1,1,0,0) : chr(9553), # vertical
+                        (0,0,1,1) : chr(9552), # horizontal
+                        (1,1,1,1) : chr(9580), # cross
+                        (1,0,1,1) : chr(9577), # yway up
+                        (0,1,1,1) : chr(9574), # yway down
+                        (1,1,0,1) : chr(9571), # yway left
+                        (1,1,1,0) : chr(9568), # yway right
+                        (1,0,1,0) : chr(9562), # corner lower left
+                        (1,0,0,1) : chr(9565), # corner lower right
+                        (0,1,1,0) : chr(9556), # corner upper left
+                        (0,1,0,1) : chr(9559) # corner upper right
+                    }.get(('N' in d, 'S' in d, 'E' in d, 'W' in d), ' ')
         print(out)
 
 if __name__ == '__main__':
