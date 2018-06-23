@@ -122,9 +122,12 @@ class QuadCell:
 
     def is_room(self):
         return self.variant == VARIANT.ROOM
+        
+    def add_neighbour(self, connected_neighbour, direction):
+        self.connected[direction] = connected_neighbour
     
-    def neighbour(self, d):
-        return self.index[self.x + d.x, self.y + d.y]
+    def neighbour(self, d, direction):
+        NotImplemented
     
     
 class Tree(QuadCell):
@@ -163,14 +166,11 @@ class Tree(QuadCell):
         # Feasible direction space
         return directions
     
-class Tile(QuadCell):
+class Tile2(QuadCell):
     slots = ['connections']
     def __init__(self, connections, **kwargs):
         super().__init__(**kwargs)
         self.connections = 0
-        
-    def connect(self, connected_neighbour, direction):
-        self.connected[direction] = connected_neighbour
     
     def unconnected(self):
         return tuple(DIRECTION for DIRECTION in DIRECTION if DIRECTION not in self.connected)
