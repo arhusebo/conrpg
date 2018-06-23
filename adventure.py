@@ -197,13 +197,4 @@ if __name__ == '__main__':
             adv.set_player_movement('E')
         adv.update()
         cls()
-        overview = str(adv.map)
-        ov2 = ""
-        for y, line in enumerate(overview.split('\n')):
-            for x, chr in enumerate(line):
-                if x==adv.current_x and y==adv.current_y:
-                    ov2 += '@'
-                else:
-                    ov2 += chr
-            ov2 += '\n'
-        print(ov2)
+        adv_rnd.draw_map()
