@@ -1,3 +1,5 @@
+from directions import DIRECTIONS
+
 class Tile:
     __slots__ = ['x', 'y', 'variant', 'connections']
     def __init__(self, x, y, variant):
@@ -85,105 +87,110 @@ class Map:
 
 #Hacky enum
 class VARIANT:
-    EMPTY = ' '
+    EMPTY = '*'
     ROOM  = 'O'
     WALL  = 'W'
     ENTRY = 'E'
     BOSS  = 'B'
     TREASURE = 'T'
-
-#Directions
-from collections import namedtuple
-Direction = namedtuple("Direction", ['x', 'y'])
-NORTH = Direction(x =  0, y = -1)
-EAST  = Direction(x = -1, y =  0)
-SOUTH = Direction(x =  0, y =  1)
-WEST  = Direction(x =  1, y =  0)
-DIRECTIONS = (NORTH, EAST, SOUTH, WEST)
+    
+    CHART = '#'
     
 
 class QuadCell:
-    __slots__ = ['x', 'y', 'variant', 'symbol' 'neighbours', 'index']
-    def __init__(self, x, y, variant, symbol, index):
+    __slots__ = ['x', 'y', 'variant', 'symbol', 'parent', 'neighbours', 'connections']
+    def __init__(self, x, y, variant, symbol, parent, neighbours=dict()):
         self.x, self.y = (x, y)
         self.variant = variant
         self.symbol = symbol
-        self.index = index
-        self.neighbours = {}
+        self.parent = parent
+        self.neighbours = neighbours.copy()
     
     def __str__(self):
         return self.symbol
 
     def has_one_connection(self):
-        return 1 == len(self.neighbours)
+        return 1 == len(self.connections)
 
     def is_empty(self):
         return self.variant == VARIANT.EMPTY
 
     def is_room(self):
         return self.variant == VARIANT.ROOM
-        
-    def add_neighbour(self, connected_neighbour, direction):
-        self.connected[direction] = connected_neighbour
     
-    def neighbour(self, d, direction):
-        NotImplemented
+    def neighbour(self, direction):
+        self.neighbours[direction]
+    
+    def unconnected(self):
+        return self.neighbours.keys() - self.connections
     
     
 class Tree(QuadCell):
-    __slots__ = ['index']
-    def __init__(self, index, **kwargs):
+    __slots__ = ['children', 'connections']
+    def __init__(self, connections=set(), **kwargs):
         super().__init__(**kwargs)
-        self.index = index
+        self.connections = connections.copy()
         
     def __str__(self):
+        from directions import symbol
         string = []
-        for row in self.tiles:
-            for tile in row:
-                string.append(tile.__str__())
+        for row in self.children:
+            for child in row:
+                string.append(symbol(child.connections))
             string.append('\n')
         return ''.join(string)
 
-    def __getitem__(self, x, y):
-        if self.in_bounds(x,y):
-            return self.tiles[y][x]
-        return None #raise IndexError-exception?
+    def __getitem__(self, y):
+        return self.children[y]
     
-    def in_bounds(self, x, y):
-        return (0 <= x < self.width) and (0 <= y < self.height)
-
-    def free_directions(self, tile):
-        direction_space = tile.unconnected()
-
-        # Remove Out-Of-Bounds directions
-        for d in set(directions_space):
-            x = tile.x+d.x
-            y = tile.y+d.y
-            if self.in_bounds(x, y):
-                continue
-            del directions[d_key]
-
-        # Feasible direction space
-        return directions
+    def fill(self, width, height, child_constructor):
+        self.children =  [[child_constructor(x=i, y=j, parent=self) for i in range(width)] for j in range(height)]
+        self.make_child_neighbours()
+    
+    def width(self):
+        return len(self.children[0])
+    
+    def height(self):
+        return len(self.children)
+    
+    def make_child_neighbours(self):
+        width  = self.width()
+        height = self.height()
+        for row in self.children:
+            for child in row:
+                for d in DIRECTIONS:
+                    ny = child.y+d.y
+                    nx = child.x+d.x
+                    #Disallow negative indexes
+                    if (0 <= nx < width) and (0 <= ny < height):
+                        child.neighbours[d] = self[ny][nx]
+    
     
 class Tile2(QuadCell):
-    slots = ['connections']
-    def __init__(self, connections, **kwargs):
+    """
+    Room tile object. Is the child of Room and has no children.
+    """
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.connections = 0
-    
-    def unconnected(self):
-        return tuple(DIRECTION for DIRECTION in DIRECTION if DIRECTION not in self.connected)
+        self.connections = set()
+
 
 class Room(Tree):
-    pass
+    """
+    Room tile object. Is the child of Chart and contains Tile2 as children.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(variant="Room", symbol=VARIANT.EMPTY, **kwargs)
     
-class Dungeon(Tree):
+class Chart(Tree):
+    """
+    Chart tile object. Is the child of Overworld and contains Room as children.
+    """
     __slots__ = ["monsters", "treasures"]
-    def __init__(self, monsters, treasures, **kwargs):
-        super().__init__(**kwargs)
-        self.monsters = monsters
-        self.treasures = treasures
+    def __init__(self, monsters={}, treasures={}, **kwargs):
+        super().__init__(variant="Chart", symbol=VARIANT.CHART, **kwargs)
+        self.monsters = monsters.copy()
+        self.treasures = treasures.copy()
 
 class Overworld(Tree):
     pass

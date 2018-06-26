@@ -3,7 +3,8 @@ TODO: Add seed-argument to generator
 """
 
 import random
-from .mapobj import Tile, Map
+from mapobj import Tile, Map, Room, Chart, VARIANT
+from directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS, opposite
 
 
 def dungeon_generator(width, height, seed):
@@ -75,7 +76,84 @@ def border_entry(width, height):
 
     return tile
 
+
+### v2
+
+def border_entry2(tree):
+    """
+    This function generates a seed on the edge of the parent tree.
+    Input:
+    parent tree, a tree object
+    child constructor, a tree or cell object
+    """
+    # Selects a random index at a random edge
+    seed_side = random.choice(tuple(DIRECTIONS))
+    if seed_side in {NORTH, SOUTH}:
+        y = 0 if seed_side == NORTH else tree.height()-1
+        x = random.randint(1, tree.width()-1)
+    else: #in {EAST, WEST}
+        y = random.randint(1, tree.height()-1)
+        x = 0 if seed_side == EAST else tree.width()-1
+        
+    child = tree[y][x]
+    child.variant = "Entry"
+    child.symbol = VARIANT.ENTRY
+
+    return child
+
+def dungeon_generator2(dungeon, seed):
+    active = [seed]
+
+    max_number_of_rooms = random.randint(40, 50)
+    total_number_of_rooms = 0
+    while active:
+        room = active.pop()
+        free_directions = room.unconnected()
+        directions = [
+            list(free_directions)[k] for k in
+            random.sample(range(len(free_directions)), random.randint(1, len(free_directions)))
+        ]
+        length = random.randint(1, 3)
+
+        # Tries to make a hallway in each of the direction
+        for direction in directions:
+            hall = room
+            for i in range(length):
+                try:
+                    next_hall = hall.neighbours[direction]
+                except KeyError: #Out of bounds
+                    pass
+                
+                if next_hall.symbol == VARIANT.EMPTY:
+                    hall.connections.add(direction)
+                    next_hall.connections.add(opposite(direction))
+
+                    hall = next_hall
+                    hall.symbol = VARIANT.ROOM
+                    total_number_of_rooms += 1
+                else: #end of path
+                    break
+            else:
+                active.append(hall)
+
+            if total_number_of_rooms > max_number_of_rooms: break
+        if total_number_of_rooms > max_number_of_rooms: break
+    
+    hall_ends = []
+    for row in dungeon:
+        for room in row:
+            if room.symbol == VARIANT.ROOM and room.has_one_connection():
+                room.symbol = VARIANT.TREASURE
+                hall_ends.append(room)
+
+    special_rooms = iter(random.sample(hall_ends, 1))
+    special_rooms.__next__().symbol = VARIANT.BOSS
+    
+    return dungeon
+
 if __name__ == "__main__":
-    seed = border_entry(20, 10)
-    dungeon = dungeon_generator(20, 10, seed)
+    blank_chart = Chart(x=0, y=0, parent=None)
+    blank_chart.fill(width=20, height=10, child_constructor=Room)
+    seed = border_entry2(blank_chart)
+    dungeon = dungeon_generator2(blank_chart, seed)
     print(dungeon)
