@@ -126,6 +126,9 @@ class QuadCell:
     def unconnected(self):
         return self.neighbours.keys() - self.connections
     
+    def coords(self):
+        return (self.x, self.y)
+    
     
 class Tree(QuadCell):
     __slots__ = ['children', 'connections']
@@ -146,7 +149,7 @@ class Tree(QuadCell):
         return self.children[y]
     
     def fill(self, width, height, child_constructor):
-        self.children =  [[child_constructor(x=i, y=j, parent=self) for i in range(width)] for j in range(height)]
+        self.children = [[child_constructor(x=i, y=j, parent=self) for i in range(width)] for j in range(height)]
         self.make_child_neighbours()
     
     def width(self):
@@ -173,7 +176,7 @@ class Tile2(QuadCell):
     Room tile object. Is the child of Room and has no children.
     """
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(variant="Tile", symbol=VARIANT.EMPTY, **kwargs)
         self.connections = set()
 
 
@@ -188,11 +191,12 @@ class Chart(Tree):
     """
     Chart tile object. Is the child of Overworld and contains Room as children.
     """
-    __slots__ = ["monsters", "treasures"]
-    def __init__(self, monsters={}, treasures={}, **kwargs):
+    __slots__ = ["monsters", "treasures", "explored"]
+    def __init__(self, monsters={}, treasures={}, explored={}, **kwargs):
         super().__init__(variant="Chart", symbol=VARIANT.CHART, **kwargs)
         self.monsters = monsters.copy()
         self.treasures = treasures.copy()
+        self.explored = explored.copy()
 
 class Overworld(Tree):
     pass

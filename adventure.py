@@ -1,6 +1,6 @@
 import random
-import map.mapgen
-from map.mapobj import Map, Tile
+import maps.mapgen
+from maps.mapobj import Map, Tile
 
 class Room(Map):
     presets = {
@@ -95,8 +95,8 @@ class Adventure:
         self.width = 20
         self.height = 10
         self.rooms = [None]*self.width*self.height
-        seed = map.mapgen.border_entry(self.width, self.height)
-        self.map = map.mapgen.dungeon_generator(self.width, self.height, seed)
+        seed = maps.mapgen.border_entry(self.width, self.height)
+        self.map = maps.mapgen.dungeon_generator(self.width, self.height, seed)
         # add entry room
         self.current_x = self.map.entry.x # per dungeon basis
         self.current_y = self.map.entry.y # per dungeon basis

@@ -2,17 +2,10 @@ import random
 import maps.mapgen
 from textwrap import dedent
 from maps.mapobj import VARIANT, Tile2, Room, Chart
-from maps.directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS
+from maps.directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS, opposite
 
 
-if __name__ == "__main__":
-    blank_chart = Chart(x=0, y=0, parent=None)
-    blank_chart.fill(width=20, height=10, child_constructor=Room)
-    seed = maps.mapgen.border_entry2(blank_chart)
-    dungeon = maps.mapgen.dungeon_generator2(blank_chart, seed)
-    print(dungeon)
-
-class RoomGen:
+class ROOM_PRESETS:
     default = dedent("""
         wwwowww
         wooooow
@@ -27,100 +20,132 @@ class RoomGen:
     basic = {
         "basic_1":
             dedent("""
-            wwwowww
+            wwwwwww
             wooooow
             wooooow
-            ooooooo
             wooooow
             wooooow
-            wwwowww
+            wooooow
+            wwwwwww
             """.strip('\n')),
         "basic_2":
             dedent("""
-            wwwowww
+            wwwwwww
             wowowow
             wooooow
-            ooooooo
+            wooooow
             woowoow
             wooooow
-            wwwowww
+            wwwwwww
             """.strip('\n')),
         "basic_3":
             dedent("""
-            wwwowww
+            wwwwwww
             wooooow
             woowoow
-            ooooooo
+            wooooow
             wowowow
             wooooow
-            wwwowww
+            wwwwwww
             """.strip('\n')),
         "basic_4":
             dedent("""
-            wwwowww
+            wwwwwww
             wooooow
             wooooow
-            ooowooo
+            woowoow
             wooooow
             wooooow
-            wwwowww
+            wwwwwww
             """.strip('\n')),
         "basic_5":
             dedent("""
-            wwwowww
+            wwwwwww
             wooooow
             woowoow
-            ooooooo
+            wooooow
             woowoow
             wooooow
-            wwwowww
+            wwwwwww
             """.strip('\n'))
     }
 
-    def __init__(self, room, preset):
-        self.preset = RoomGen.presets.get(preset, RoomGen.default)
-        width = self.preset.index('\n')
-        height = self.preset.count('\n')+1
-        
-        room.fill(width=height, height=width, child_constructor=Tile2)
-        
-        for i, string in enumerate(self.preset.splitlines()):
-            for j, c in enumerate(string):
-                tile = room[j][i]
-                tile.symbol = {
-                    'w' : VARIANT.WALL,
-                    'o' : VARIANT.WALKABLE,
-                }.get(c, VARIANT.WALL)
+def room_generator(room):
+    if room.coords() in room.parent.explored:
+        preset = room.parent.explored.get(room.coords())
+    else:
+        # Double assignment
+        preset = room.parent.explored[room.coords()] =\
+            ROOM_PRESETS.basic.get(random.choice(tuple(ROOM_PRESETS.basic.keys())))
+    
+    # Get width and height of preset
+    width = preset.index('\n')
+    height = preset.count('\n')
+    
+    # Make children
+    room.fill(width=height, height=width, child_constructor=Tile2)
+    
+    # Turn the room-string into an array for easier manipulation
+    room_array = [[c for c in line] for line in preset.splitlines()]
+    
+    # Block void rooms
+    for connection in room.connections:
+        x, y = connection
+        if x:
+            x = (x-1)//2 # 1 -> 0 and -1 -> -1
+            room_array[height//2][x] = 'o'
+        if y:
+            y = (y-1)//2 # 1 -> 0 and -1 -> -1
+            room_array[y][width//2] = 'o'
+    
+    # Specify room symbols
+    for j in range(height):
+        for i in range(width):
+            c = room_array[j][i]
+            tile = room[j][i]
+            tile.symbol = {
+                'w' : VARIANT.WALL,
+                'o' : VARIANT.WALKABLE,
+            }.get(c, VARIANT.WALL)
+    
+    # Connect walkable tiles
+    for j in range(height):
+        for i in range(width):
+            tile = room[j][i]
+            if tile.symbol == VARIANT.WALL:
+                continue
+            for neighbour_dir, neighbour in tile.neighbours.items():
+                if neighbour.symbol == VARIANT.WALKABLE:
+                    tile.connections.add(neighbour_dir)
+                    neighbour.connections.add(opposite(neighbour_dir))
+    
+    return room
 
 class Adventure:
     def __init__(self):
         self.player_dx = 0
         self.player_dy = 0
 
-    def generate_map(self):
-        self.width = 20
-        self.height = 10
-        self.rooms = [None]*self.width*self.height
-        seed = maps.mapgen.border_entry(self.width, self.height)
-        self.map = maps.mapgen.dungeon_generator(self.width, self.height, seed)
-        # add entry room
-        self.current_x = self.map.entry.x # per dungeon basis
-        self.current_y = self.map.entry.y # per dungeon basis
-        self.change_room(0,0) # set initial room
-        self.player_x = int(self.get_current_room().width/2) # per room basis
-        self.player_y = int(self.get_current_room().height/2) # per room basis
+    def build_dungeon(self):
+        blank_chart = Chart(x=0, y=0, parent=None)
+        blank_chart.fill(width=20, height=10, child_constructor=Room)
+        self.seed = maps.mapgen.border_entry2(blank_chart)
+        self.dungeon = maps.mapgen.dungeon_generator2(blank_chart, self.seed)
+        
+    def build_room(self, x, y):
+        blank_room = self.dungeon[y][x]
+        self.current_room = room_generator(blank_room)
+        print(self.current_room)
+        for coords, tile in self.current_room.surrounding():
+            warp_generator(neighbour)
 
     def create_room(self, x, y):
         variant = self.map[y][x].variant
         if variant == 'O':
-            preset = random.choice(['basic_1',
-                                    'basic_2',
-                                    'basic_3',
-                                    'basic_4',
-                                    'basic_5'])
+            preset = random.choice(RoomGen.basic.keys())
         else:
             preset = 'default'
-        return Room(preset, self.map[y][x].connections)
+        return RoomGen(preset, self.map[y][x].connections)
 
     def set_room(self, x, y, room):
         self.rooms[self.width*y+x] = room
@@ -185,11 +210,12 @@ class Adventure:
         self.player_dy = 0
 
 if __name__ == '__main__':
-    from conio import AdventureRenderer, cls
+    import conio as io
     from listener import get_key
     adv = Adventure()
-    adv_rnd = AdventureRenderer(adv)
-    adv.generate_map()
+    adv_rnd = io.AdventureRenderer(adv)
+    adv.build_dungeon()
+    adv.build_room(adv.seed.x, adv.seed.y)
     while(True):
         adv_rnd.draw_room()
         key = get_key()
@@ -202,5 +228,5 @@ if __name__ == '__main__':
         elif key == 'd':
             adv.set_player_movement('E')
         adv.update()
-        cls()
+        io.cls()
         adv_rnd.draw_map()
