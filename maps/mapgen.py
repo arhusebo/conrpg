@@ -3,8 +3,8 @@ TODO: Add seed-argument to generator
 """
 
 import random
-from mapobj import Tile, Map, Room, Chart, VARIANT
-from directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS, opposite
+from .mapobj import Tile, Map, Room, Chart, VARIANT
+from .directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS, opposite
 
 
 def dungeon_generator(width, height, seed):
@@ -150,10 +150,3 @@ def dungeon_generator2(dungeon, seed):
     special_rooms.__next__().symbol = VARIANT.BOSS
     
     return dungeon
-
-if __name__ == "__main__":
-    blank_chart = Chart(x=0, y=0, parent=None)
-    blank_chart.fill(width=20, height=10, child_constructor=Room)
-    seed = border_entry2(blank_chart)
-    dungeon = dungeon_generator2(blank_chart, seed)
-    print(dungeon)

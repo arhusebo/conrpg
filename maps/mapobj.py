@@ -1,4 +1,4 @@
-from directions import DIRECTIONS
+from .directions import DIRECTIONS
 
 class Tile:
     __slots__ = ['x', 'y', 'variant', 'connections']
@@ -87,9 +87,11 @@ class Map:
 
 #Hacky enum
 class VARIANT:
+    WALL  = 'w'
+    WALKABLE  = 'o'
+    
     EMPTY = '*'
     ROOM  = 'O'
-    WALL  = 'W'
     ENTRY = 'E'
     BOSS  = 'B'
     TREASURE = 'T'
@@ -132,7 +134,7 @@ class Tree(QuadCell):
         self.connections = connections.copy()
         
     def __str__(self):
-        from directions import symbol
+        from .directions import symbol
         string = []
         for row in self.children:
             for child in row:
