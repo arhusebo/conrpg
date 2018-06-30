@@ -5,7 +5,8 @@ from item import Item_constructor
 
 class Settings:
     """Instantiable class for reading and writing settings"""
-    defaults = {'graphics': 'ascii'}
+    defaults = {'graphics': 'ascii',
+                'underline': 'true'}
     def __init__(self, path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         self.path = path
@@ -18,6 +19,9 @@ class Settings:
 
     def read(self, key):
         return self.cfg['SETTINGS'][key]
+
+    def read_boolean(self, key):
+        return self.cfg['SETTINGS'].getboolean(key)
 
     def write(self, key, value):
         self.cfg['SETTINGS'][key] = value
@@ -33,12 +37,12 @@ def save_game(path, player):
     data['hp_max'] = player.hp_max
     data['hp'] = player.hp
     data['attack'] = player.attack
-    data['defense'] = player.defense
+    data['defence'] = player.defence
     data['inventory'] = list(player.inventory.keys())
     data['inventory_slots'] = player.inventory_slots
     data['base_hp'] = player.base_hp
     data['base_attack'] = player.base_attack
-    data['base_defense'] = player.base_defense
+    data['base_defence'] = player.base_defence
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w') as f:

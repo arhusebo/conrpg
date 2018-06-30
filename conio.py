@@ -5,7 +5,11 @@ import math as m
 from textwrap import dedent
 import listener
 
-underline = lambda c: '\033[4m'+c+'\033[0m'
+USE_UNDERLINE = True
+
+def underline(c):
+    if USE_UNDERLINE: return '\033[4m'+c+'\033[0m'
+    else: return c
 
 class AdventureRenderer:
 
