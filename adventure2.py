@@ -7,13 +7,13 @@ from maps.directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS
 
 class ROOM_PRESETS:
     default = dedent("""
-        wwwowww
+        wwwwwww
         wooooow
         wooooow
-        ooooooo
         wooooow
         wooooow
-        wwwowww
+        wooooow
+        wwwwwww
         """.strip('\n'))
     boss = default
     treasure = default
@@ -132,7 +132,7 @@ def room_generator(room):
 def warp_generator(room):
     if room.coords() in room.parent.explored:
         preset = room.parent.explored.get(room.coords())
-    elif room.symbol == VARIANT.ROOM:
+    elif room.symbol in {VARIANT.ROOM, VARIANT.BOSS, VARIANT.TREASURE}:
         preset = ROOM_PRESETS.default
     else: # Placeholder room
         preset = ROOM_PRESETS.wall
@@ -194,6 +194,25 @@ def connect_bordering_tiles(room):
                     tile.connections.add(d)
                     
 
+class View:
+    def __init__(self, n9):
+        width = n9[0][0].width()
+        height = n9[0][0].height()
+        self.index = [[None for i in range(3*width)] for j in range(3*height)]
+        for i in range(len(self.index)):
+            for j in range(len(self.index[0])):
+                self.index[j][i] = n9 [j//height][i//width] [j%height][i%width]
+        
+    def __str__(self):
+        string = []
+        for row in self.index:
+            for tile in row:
+                string.append(tile.symbol)
+            string.append('\n')
+        return ''.join(string)
+                
+                
+                    
 class Adventure:
     def __init__(self):
         self.player_dx = 0
@@ -218,9 +237,12 @@ class Adventure:
         # We connect the bordering tiles in the current_room to the connected neighbouring (warp) rooms
         connect_bordering_tiles(self.current_room)
         
-        print(repr(self.current_room))
+        view = View(n9) # create an index containing all the tiles in the rooms in n9
         
-        create_view(n9) # create an index containing all the tiles in the rooms in n9
+        print(repr(self.current_room))
+        print(view)
+        print(repr(self.dungeon))
+        print(self.dungeon)
         
 
     def create_room(self, x, y):

@@ -7,6 +7,11 @@ class Direction:
         self.x = x
         self.y = y
     
+    def __str__(self):
+        return f"({self.x}, {self.y})"
+    
+    __repr__ = __str__
+    
     def __add__(self, other):
         return Direction(x = self.x + other.x, y = self.y + other.y)
     
@@ -16,6 +21,13 @@ class Direction:
     def __iter__(self):
         yield self.x
         yield self.y
+        
+    # Overload hash and equality for key lookups
+    def __hash__(self):
+        return hash((self.x, self.y))
+    
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
     
 NORTH = Direction(x =  0, y = -1)
 EAST  = Direction(x =  1, y =  0)
@@ -24,7 +36,6 @@ WEST  = Direction(x = -1, y =  0)
 DIRECTIONS = {NORTH, EAST, SOUTH, WEST}
 
 def symbol(dirs):
-    #East and west are reversed ??
     return {
         (0,0,0,0) : ' ',
         (0,0,0,1) : '╡',

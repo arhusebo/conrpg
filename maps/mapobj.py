@@ -87,8 +87,8 @@ class Map:
 
 #Hacky enum
 class VARIANT:
-    WALL  = 'w'
-    WALKABLE  = 'o'
+    WALL  = '██'
+    WALKABLE  = '  '
     
     EMPTY = '*'
     ROOM  = 'O'
