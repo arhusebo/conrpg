@@ -1,8 +1,8 @@
 import random
 import maps.mapgen
 from textwrap import dedent
-from maps.mapobj import VARIANT, Tile2, Room, Chart
-from maps.directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS, opposite
+from maps.mapobj import VARIANT, Warp, Tile2, Room, Chart
+from maps.directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS
 
 
 class ROOM_PRESETS:
@@ -17,6 +17,15 @@ class ROOM_PRESETS:
         """.strip('\n'))
     boss = default
     treasure = default
+    wall = dedent("""
+        wwwwwww
+        wwwwwww
+        wwwwwww
+        wwwwwww
+        wwwwwww
+        wwwwwww
+        wwwwwww
+        """.strip('\n'))
     basic = {
         "basic_1":
             dedent("""
@@ -90,13 +99,12 @@ def room_generator(room):
     
     # Block void rooms
     for connection in room.connections:
+        e = room.edge_index(connection)
         x, y = connection
         if x:
-            x = (x-1)//2 # 1 -> 0 and -1 -> -1
-            room_array[height//2][x] = 'o'
+            room_array[height//2][e] = 'o'
         if y:
-            y = (y-1)//2 # 1 -> 0 and -1 -> -1
-            room_array[y][width//2] = 'o'
+            room_array[e][width//2] = 'o'
     
     # Specify room symbols
     for j in range(height):
@@ -117,9 +125,74 @@ def room_generator(room):
             for neighbour_dir, neighbour in tile.neighbours.items():
                 if neighbour.symbol == VARIANT.WALKABLE:
                     tile.connections.add(neighbour_dir)
-                    neighbour.connections.add(opposite(neighbour_dir))
+                    neighbour.connections.add(-neighbour_dir)
     
     return room
+
+def warp_generator(room):
+    if room.coords() in room.parent.explored:
+        preset = room.parent.explored.get(room.coords())
+    elif room.symbol == VARIANT.ROOM:
+        preset = ROOM_PRESETS.default
+    else: # Placeholder room
+        preset = ROOM_PRESETS.wall
+    
+    # Get width and height of preset
+    width = preset.index('\n')
+    height = preset.count('\n')
+    
+    # Make children
+    room.fill(width=height, height=width, child_constructor=Tile2)
+    
+    # Turn the room-string into an array for easier manipulation
+    room_array = [[c for c in line] for line in preset.splitlines()]
+    
+    # Block void rooms
+    for connection in room.connections:
+        e = room.edge_index(connection)
+        x, y = connection
+        if x:
+            room_array[height//2][e] = 'o'
+        if y:
+            room_array[e][width//2] = 'o'
+    
+    # Specify room symbols
+    for j in range(height):
+        for i in range(width):
+            c = room_array[j][i]
+            tile = room[j][i]
+            tile.symbol = {
+                'w' : VARIANT.WALL,
+                'o' : VARIANT.WALKABLE,
+            }.get(c, VARIANT.WALL)
+    
+    return room
+
+def connect_bordering_tiles(room):
+    for d in room.connections:
+        connection = room.neighbours[d]
+        dx, dy = d
+        e = room.edge_index(d)
+        e_o = connection.edge_index(-d) #opposite
+        
+        if dx:
+            for j in range(room.height()):
+                tile = room[j][e]
+                tile_o = connection[j][e_o]
+                
+                if tile.symbol == tile_o.symbol == VARIANT.WALKABLE:
+                    tile.neighbours[d] = tile_o
+                    tile.connections.add(d)
+        
+        else:
+            for i in range(room.width()):
+                tile = room[e][i]
+                tile_o = connection[e_o][i]
+                
+                if tile.symbol == tile_o.symbol == VARIANT.WALKABLE:
+                    tile.neighbours[d] = tile_o
+                    tile.connections.add(d)
+                    
 
 class Adventure:
     def __init__(self):
@@ -127,17 +200,28 @@ class Adventure:
         self.player_dy = 0
 
     def build_dungeon(self):
-        blank_chart = Chart(x=0, y=0, parent=None)
-        blank_chart.fill(width=20, height=10, child_constructor=Room)
-        self.seed = maps.mapgen.border_entry2(blank_chart)
-        self.dungeon = maps.mapgen.dungeon_generator2(blank_chart, self.seed)
+        self.dungeon = Chart(x=0, y=0, parent=None)
+        self.dungeon.fill(width=20, height=10, child_constructor=Room)
+        self.seed = maps.mapgen.border_entry2(self.dungeon)
+        maps.mapgen.dungeon_generator2(self.dungeon, self.seed)
         
     def build_room(self, x, y):
-        blank_room = self.dungeon[y][x]
-        self.current_room = room_generator(blank_room)
-        print(self.current_room)
-        for coords, tile in self.current_room.surrounding():
-            warp_generator(neighbour)
+        self.current_room = self.dungeon[y][x]
+        n9 = self.current_room.surrounding() # 3x3 double list, current_room in center
+        for row in n9:
+            for room in row:
+                if room == self.current_room:
+                    room_generator(room)
+                else:
+                    warp_generator(room)
+                    
+        # We connect the bordering tiles in the current_room to the connected neighbouring (warp) rooms
+        connect_bordering_tiles(self.current_room)
+        
+        print(repr(self.current_room))
+        
+        create_view(n9) # create an index containing all the tiles in the rooms in n9
+        
 
     def create_room(self, x, y):
         variant = self.map[y][x].variant

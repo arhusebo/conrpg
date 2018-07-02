@@ -1,20 +1,28 @@
 #Directions
-from collections import namedtuple
-Direction = namedtuple("Direction", ['x', 'y'])
+#from collections import namedtuple
+#Direction = namedtuple("Direction", ['x', 'y'])
+class Direction:
+    __slots__ = ('x', 'y')
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+    
+    def __add__(self, other):
+        return Direction(x = self.x + other.x, y = self.y + other.y)
+    
+    def __neg__(self):
+        return Direction(x = -self.x, y = -self.y)
+    
+    def __iter__(self):
+        yield self.x
+        yield self.y
+    
 NORTH = Direction(x =  0, y = -1)
 EAST  = Direction(x =  1, y =  0)
 SOUTH = Direction(x =  0, y =  1)
 WEST  = Direction(x = -1, y =  0)
 DIRECTIONS = {NORTH, EAST, SOUTH, WEST}
 
-def opposite(direction):
-    return {
-        NORTH : SOUTH,
-        SOUTH : NORTH,
-        EAST  : WEST,
-        WEST  : EAST,
-    }[direction]
-      
 def symbol(dirs):
     #East and west are reversed ??
     return {

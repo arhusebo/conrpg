@@ -4,7 +4,7 @@ TODO: Add seed-argument to generator
 
 import random
 from .mapobj import Tile, Map, Room, Chart, VARIANT
-from .directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS, opposite
+from .directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS
 
 
 def dungeon_generator(width, height, seed):
@@ -126,7 +126,7 @@ def dungeon_generator2(dungeon, seed):
                 
                 if next_hall.symbol == VARIANT.EMPTY:
                     hall.connections.add(direction)
-                    next_hall.connections.add(opposite(direction))
+                    next_hall.connections.add(-direction)
 
                     hall = next_hall
                     hall.symbol = VARIANT.ROOM

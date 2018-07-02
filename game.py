@@ -151,7 +151,7 @@ class Game():
                     buying = False
                     break
                 io.cls()
-                inventory_items[item_dict.name] = Item_constructor(name=choice)
+                item = Item_constructor(name=choice)
                 accept_transaction = io.bin_choice(f"Buy {item.name} for {item.value} gold?")
                 if accept_transaction:
                     if self.player.gold >= item.value:

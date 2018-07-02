@@ -1,4 +1,4 @@
-from .directions import DIRECTIONS
+from .directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS
 
 class Tile:
     __slots__ = ['x', 'y', 'variant', 'connections']
@@ -122,6 +122,26 @@ class QuadCell:
     
     def neighbour(self, direction):
         self.neighbours[direction]
+        
+    def surrounding(self):
+        width = self.parent.width()
+        height = self.parent.height()
+        def T(d):
+            n_y = self.y+d.y
+            n_x = self.x+d.x
+            if (0 <= n_x < width) and (0 <= n_y < height):
+                return self.parent[n_y][n_x]
+            else:
+                return Room(x=n_x, y=n_y, parent=self.parent)
+            
+        n9 = [
+            [T(NORTH+WEST), T(NORTH), T(NORTH+EAST)],
+            [T(WEST)      , self    , T(EAST)      ],
+            [T(SOUTH+WEST), T(SOUTH), T(SOUTH+EAST)],
+        ]
+        
+        return n9
+        
     
     def unconnected(self):
         return self.neighbours.keys() - self.connections
@@ -141,6 +161,15 @@ class Tree(QuadCell):
         string = []
         for row in self.children:
             for child in row:
+                string.append(child.symbol)
+            string.append('\n')
+        return ''.join(string)
+    
+    def __repr__(self):
+        from .directions import symbol
+        string = []
+        for row in self.children:
+            for child in row:
                 string.append(symbol(child.connections))
             string.append('\n')
         return ''.join(string)
@@ -151,6 +180,14 @@ class Tree(QuadCell):
     def fill(self, width, height, child_constructor):
         self.children = [[child_constructor(x=i, y=j, parent=self) for i in range(width)] for j in range(height)]
         self.make_child_neighbours()
+    
+    def edge_index(self, direction):
+        dx, dy = direction
+        if dx:
+            return 0 if dx < 0 else self.width()-1
+        else:
+            return 0 if dy < 0 else self.height()-1
+            
     
     def width(self):
         return len(self.children[0])
@@ -170,7 +207,14 @@ class Tree(QuadCell):
                     if (0 <= nx < width) and (0 <= ny < height):
                         child.neighbours[d] = self[ny][nx]
     
-    
+class Warp(QuadCell):
+    """
+    Room tile object. Is the child of Room and has no children.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(variant="Warp", symbol=VARIANT.EMPTY, **kwargs)
+
+
 class Tile2(QuadCell):
     """
     Room tile object. Is the child of Room and has no children.
