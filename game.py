@@ -65,15 +65,21 @@ class Game():
     def stats(self):
         io.cls()
 
-        io.msg("\t ~ " + self.player.name + " ~\n")
+        io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, f"{self.player.name}, level {self.player.level} Adventurer",True)
+        io.skip_line(3)
+        io.progress_bar(self.player.hp, self.player.hp_max, 25, "Health", True)
+        io.skip_line(1)
+        io.progress_bar(100, 100, 25, "Energy", True)
+        io.skip_line(1)
+        io.progress_bar(100, 100, 25, "Hunger")
+        io.skip_line(2)
         io.table(
-            ["Level", self.player.level],
-            ["HP", f"{self.player.hp}/{self.player.hp_max}"],
-            ["Attack", f"{self.player.attack} (+{self.player.get_bonus_attack()})"],
-            ["Defence", f"{self.player.defence} (+{self.player.get_bonus_defence()})"]
+            ["Attack", f"{self.player.attack}",f"(+{self.player.get_bonus_attack()})"],
+            ["Defence", f"{self.player.defence}",f"(+{self.player.get_bonus_defence()})"],
+            ["Accuracy", f"{self.player.base_accuracy}",f"(+{self.player.get_bonus_accuracy()})"],
+            ["Evasion", f"{self.player.base_evasion}",f"(+{self.player.get_bonus_evasion()})"],
+            ["Speed", f"{self.player.base_speed}",f"(+{self.player.get_bonus_speed()})"],
         )
-        io.skip_line()
-        io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, "Experience",True)
 
         io.acknowledge()
         io.cls()
@@ -212,9 +218,10 @@ class Game():
     def healing(self):
         io.msg("Visiting the healing temple...")
         time.sleep(1)
-        io.cls()
+        
         healing = True
         while healing:
+            io.cls()
             self.gfx.draw('healer')
             io.msg("You have {}/{} HP".format(self.player.hp, self.player.hp_max))
             if io.bin_choice("Restore 100 HP? (10 gold)"):
@@ -294,8 +301,12 @@ class Game():
         fighting = True
         while fighting:
             io.skip_line(2)
-            io.msg(f"{battle.player.name}'s HP: {battle.player.hp}/{battle.player.hp_max}")
-            io.msg(f"{battle.monster.name}'s HP: {battle.monster.hp}/{battle.monster.hp_max}")
+            io.progress_bar(battle.player.hp, battle.player.hp_max, 25, battle.player.name, True)
+            io.skip_line(4)
+            io.progress_bar(battle.monster.hp, battle.monster.hp_max, 25, battle.monster.name, True)
+            io.skip_line(4)
+            #io.msg(f"{battle.player.name}'s HP: {battle.player.hp}/{battle.player.hp_max}")
+            #io.msg(f"{battle.monster.name}'s HP: {battle.monster.hp}/{battle.monster.hp_max}")
 
             options = {
                 "*Attack"    : attack,

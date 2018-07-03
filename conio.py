@@ -243,11 +243,11 @@ def progress_bar(value, value_max, length, label="", display_values=False):
     """
     progress_ratio = value/value_max
     bar = ("="*m.floor(length*progress_ratio)).ljust(length, "-")
-
+    
+    mid = m.floor(length/2)
     if display_values:
         progress = f"{value}/{value_max}"
         progress_percent = f"({100*progress_ratio:.1f}%)"
-        mid = m.floor(length/2)
         try:
             # Inserts progress inside bar
             bar = (bar[:mid-len(progress)]
