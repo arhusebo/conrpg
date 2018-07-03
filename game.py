@@ -250,13 +250,36 @@ class Game():
         io.msg(f"Encountered a level {monster.level} {monster.name}")
 
         def attack():
+            # perform a turn and unpack turn results
+            player_start, player_attack, monster_attack = battle.turn()
+            player_attack_outcomes, player_attack_damage = player_attack
+            monster_attack_outcomes, monster_attack_damage = monster_attack
+            
+            def show_player_outcomes():
+                if 'hit' in player_attack_outcomes:
+                    io.msg(f"You attack and hit the {battle.monster.name} for {player_attack_damage} HP")
+                elif 'miss' in player_attack_outcomes:
+                    io.msg("You miss")
+                elif 'dodge' in player_attack_outcomes:
+                    io.msg(f"{battle.monster.name} dodges your attack")
+            
+            def show_monster_outcomes():
+                if 'hit' in monster_attack_outcomes:
+                    io.msg(f"{battle.monster.name} attacks and hits you for {monster_attack_damage} HP")
+                elif 'miss' in monster_attack_outcomes:
+                    io.msg(f"{battle.monster.name} misses")
+                elif 'dodge' in monster_attack_outcomes:
+                    io.msg(f"You dodge {battle.monster.name}'{'s'*(not battle.monster.name.endswith('s'))} attack")
+            
             io.cls()
             time.sleep(.2)
-            io.msg(f"You attack and hit the {battle.monster.name} for {battle.player_attack()} HP")
+            if player_start: show_player_outcomes()
+            else: show_monster_outcomes()
             time.sleep(.5)
-            io.msg(f"{battle.monster.name} attacks and hits you for {battle.monster_attack()} HP")
+            if player_start: show_monster_outcomes()
+            else: show_player_outcomes()
             time.sleep(1.5)
-            if(battle.monster.is_dead()):
+            if('kill' in player_attack_outcomes):
                 io.msg(f"{battle.monster.name} dies. You are victorious!")
                 io.msg(f"{battle.award_player_exp()} experience gained.")
                 if self.player.check_levelup():

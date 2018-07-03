@@ -10,6 +10,9 @@ class Actor():
         self.base_hp = 1
         self.base_attack = 0
         self.base_defence = 0
+        self.base_accuracy = .7
+        self.base_evasion = .3
+        self.base_speed = 1
         self.hp = self.hp_max = self.base_hp
         self.attack = self.base_attack
         self.defence = self.base_defence
@@ -42,6 +45,27 @@ class Actor():
     def get_bonus_defence(self):
         from item import Armour
         return sum(item.defence for item in self.inventory.values() if isinstance(item, Armour))
+    
+    def get_bonus_accuracy(self):
+        #return sum(item.accuracy for item in self.inventory.values() if isinstance(item, Item))
+        return 0
+    
+    def get_total_accuracy(self):
+        return self.base_accuracy + self.get_bonus_accuracy()
+        
+    def get_bonus_evasion(self):
+        #return sum(item.evasion for item in self.inventory.values() if isinstance(item, Item))
+        return 0
+    
+    def get_bonus_speed(self):
+        #return sum(item.speed for item in self.inventory.values() if isinstance(item, Item))
+        return 0
+
+    def get_total_evasion(self):
+        return self.base_evasion + self.get_bonus_evasion()
+    
+    def get_total_speed(self):
+        return self.base_speed + self.get_bonus_speed()
 
     def is_dead(self):
         return self.hp == 0
