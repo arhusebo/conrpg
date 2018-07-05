@@ -1,5 +1,11 @@
 class Actor():
     """Base Actor class, not meant to be used on its own, but rather inherited from."""
+    
+    STATUS_EFFECT_FUNCTIONS = {
+        "healing": lambda actor: Actor.heal(actor, 10),
+        "damaging": lambda actor: Actor.damage(actor, 5),
+    }
+    
     def __init__(self):
         self.name = "Actor"
         self.level = 1
@@ -16,6 +22,8 @@ class Actor():
         self.hp = self.hp_max = self.base_hp
         self.attack = self.base_attack
         self.defence = self.base_defence
+        
+        self.status_effects = {}
 
     def add_item(self, item):
         """Tries to add item to actor inventory based on available inventory slots.
@@ -31,6 +39,26 @@ class Actor():
             self.inventory[item.name] = item
             return True
         return False
+
+    def add_status_effect(self, effect, duration):
+        """adds a status effect with a duration of game turns"""
+        if effect in Actor.STATUS_EFFECT_FUNCTIONS:
+            self.status_effects.update({effect:duration})
+    
+    def remove_status_effect(self, effect):
+        """removes a status effect"""
+        del self.status_effects[effect]
+    
+    def turn(self):
+        status_effects = self.status_effects.copy()
+        for key in self.status_effects:
+            # execute status effect functions
+            Actor.STATUS_EFFECT_FUNCTIONS[key](self)
+            # tick and remove expired effects
+            status_effects[key] -= 1
+            if status_effects[key] <= 0:
+                del status_effects[key]
+        self.status_effects = status_effects
 
     def heal(self, amount):
         self.hp = min(self.hp_max, self.hp + amount)
@@ -49,9 +77,6 @@ class Actor():
     def get_bonus_accuracy(self):
         #return sum(item.accuracy for item in self.inventory.values() if isinstance(item, Item))
         return 0
-    
-    def get_total_accuracy(self):
-        return self.base_accuracy + self.get_bonus_accuracy()
         
     def get_bonus_evasion(self):
         #return sum(item.evasion for item in self.inventory.values() if isinstance(item, Item))
@@ -60,6 +85,9 @@ class Actor():
     def get_bonus_speed(self):
         #return sum(item.speed for item in self.inventory.values() if isinstance(item, Item))
         return 0
+
+    def get_total_accuracy(self):
+        return self.base_accuracy + self.get_bonus_accuracy()
 
     def get_total_evasion(self):
         return self.base_evasion + self.get_bonus_evasion()
@@ -80,7 +108,7 @@ class Actor():
         self.defence = self.base_defence + level - 1
         self.hp_max = self.base_hp + 10 * (level - 1)
         self.hp = self.hp_max
-
+    
 class Player(Actor):
     """Player class for player specific data and methodology."""
     def __init__(self):
@@ -120,3 +148,12 @@ class Monster(Actor):
 
         self.level_min = kwargs.get('level_min', 0)
         self.level_max = kwargs.get('level_max', 0)
+
+if __name__ == '__main__':
+    actor = Actor()
+    actor.hp = actor.base_hp = actor.hp_max = 100
+    actor.add_status_effect("healing", 3)
+    actor.add_status_effect("damaging", 2)
+    for i in range(4):
+        print(actor.status_effects, actor.hp)
+        actor.turn()
