@@ -6,22 +6,48 @@ class Actor():
         "damaging": lambda actor: Actor.damage(actor, 5),
     }
     
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.name = "Actor"
         self.level = 1
         self.gold =  0
         self.inventory = {}
         self.inventory_slots = 0
 
-        self.base_hp = 1
-        self.base_attack = 0
-        self.base_defence = 0
-        self.base_accuracy = .7
-        self.base_evasion = .3
-        self.base_speed = 1
-        self.hp = self.hp_max = self.base_hp
-        self.attack = self.base_attack
-        self.defence = self.base_defence
+        # default base attributes
+        self.base_attributes = {
+            "health":1,
+            "attack":0,
+            "defence":0,
+            "accuracy":.7,
+            "evasion":.3,
+            "speed":1,
+        }
+        
+        for key, value in kwargs.items():
+            if key in self.base_attributes:
+                self.base_attributes[key] = value
+        
+        # set current character attributes
+        self.attributes = self.base_attributes.copy()
+        self.set_attributes(self.level)
+        
+        self.item_attributes = {
+            "health":0,
+            "attack":0,
+            "defence":0,
+            "accuracy":0,
+            "evasion":0,
+            "speed":0,
+        }
+        
+        self.effect_attributes = {
+            "health":0,
+            "attack":0,
+            "defence":0,
+            "accuracy":0,
+            "evasion":0,
+            "speed":0,
+        }
         
         self.status_effects = {}
 
@@ -59,9 +85,12 @@ class Actor():
             if status_effects[key] <= 0:
                 del status_effects[key]
         self.status_effects = status_effects
+    
+    def get_attributes():
+        return sum(base_attributes, item_attribues, )
 
     def heal(self, amount):
-        self.hp = min(self.hp_max, self.hp + amount)
+        self.hp = min(self.attributes['health'], self.hp + amount)
 
     def damage(self, amount):
         self.hp = max(0, self.hp - amount)
@@ -87,13 +116,13 @@ class Actor():
         return 0
 
     def get_total_accuracy(self):
-        return self.base_accuracy + self.get_bonus_accuracy()
+        return self.base_attributes['accuracy'] + self.get_bonus_accuracy()
 
     def get_total_evasion(self):
-        return self.base_evasion + self.get_bonus_evasion()
+        return self.base_attributes['evasion'] + self.get_bonus_evasion()
     
     def get_total_speed(self):
-        return self.base_speed + self.get_bonus_speed()
+        return self.base_attributes['speed'] + self.get_bonus_speed()
 
     def is_dead(self):
         return self.hp == 0
@@ -104,10 +133,14 @@ class Actor():
     def set_attributes(self, level):
         """Sets actor stats based on level"""
         self.level = level
-        self.attack = self.base_attack + level - 1
-        self.defence = self.base_defence + level - 1
-        self.hp_max = self.base_hp + 10 * (level - 1)
-        self.hp = self.hp_max
+        attributes = {
+            "attack":self.base_attributes["attack"] + level - 1,
+            "defence":self.base_attributes["defence"] + level - 1,
+            "health":self.base_attributes["health"] + 10 * (level - 1),
+        }
+        self.attributes = attributes
+
+        self.hp = attributes["health"]
     
 class Player(Actor):
     """Player class for player specific data and methodology."""
@@ -139,19 +172,11 @@ class Monster(Actor):
     def __init__(self, name, **kwargs):
         super().__init__()
         self.name = name
-
-        self.base_hp = kwargs.get('hp', 1)
-        self.base_attack = kwargs.get('attack', 0)
-
-        self.hp = self.hp_max = self.base_hp
-        self.attack = self.base_attack
-
         self.level_min = kwargs.get('level_min', 0)
         self.level_max = kwargs.get('level_max', 0)
 
 if __name__ == '__main__':
-    actor = Actor()
-    actor.hp = actor.base_hp = actor.hp_max = 100
+    actor = Actor(health=100)
     actor.add_status_effect("healing", 3)
     actor.add_status_effect("damaging", 2)
     for i in range(4):

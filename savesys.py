@@ -34,15 +34,10 @@ def save_game(path, player):
     data['level'] = player.level
     data['exp'] = player.exp
     data['gold'] = player.gold
-    data['hp_max'] = player.hp_max
     data['hp'] = player.hp
-    data['attack'] = player.attack
-    data['defence'] = player.defence
     data['inventory'] = list(player.inventory.keys())
     data['inventory_slots'] = player.inventory_slots
-    data['base_hp'] = player.base_hp
-    data['base_attack'] = player.base_attack
-    data['base_defence'] = player.base_defence
+    data['base_attributes'] = player.base_attributes
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w') as f:
@@ -65,14 +60,9 @@ def load_game(path, player, items):
     player.level = data.get('level', 1)
     player.exp = data.get('exp', 0)
     player.gold = data.get('gold', 0)
-    player.hp_max = data.get('hp_max', 1)
     player.hp = data.get('hp', 1)
-    player.attack = data.get('attack', 0)
-    player.defence = data.get('defence', 0)
     player.inventory = inventory_items
     player.inventory_slots = data.get('inventory_slots', {})
-    player.base_hp = data.get('base_hp', 1)
-    player.base_attack = data.get('base_attack', 0)
-    player.base_defence = data.get('base_defence', 0)
-
+    player.base_attributes = data.get('base_attributes')
+    
     return True
