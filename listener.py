@@ -10,7 +10,7 @@ def get_key(string='', echo=False):
                     'H' : 'w',
                     'K' : 'a',
                     'P' : 's',
-                    'M' : 's',
+                    'M' : 'd',
                 }.get(key)
             if echo:
                 msvcrt.putwch(key)

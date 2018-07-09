@@ -142,7 +142,7 @@ def warp_generator(room):
     height = preset.count('\n')
     
     # Make children
-    room.fill(width=height, height=width, child_constructor=Tile2)
+    room.fill(width=height, height=width, child_constructor=Warp)
     
     # Turn the room-string into an array for easier manipulation
     room_array = [[c for c in line] for line in preset.splitlines()]
@@ -169,12 +169,14 @@ def warp_generator(room):
     return room
 
 def connect_bordering_tiles(room):
+    #This only connects connections, no need to connect unconnected neighbours
     for d in room.connections:
         connection = room.neighbours[d]
         dx, dy = d
         e = room.edge_index(d)
         e_o = connection.edge_index(-d) #opposite
         
+        # checks if connected room is positioned horizontally
         if dx:
             for j in range(room.height()):
                 tile = room[j][e]
@@ -184,6 +186,7 @@ def connect_bordering_tiles(room):
                     tile.neighbours[d] = tile_o
                     tile.connections.add(d)
         
+        # checks if connected room positioned vertically
         else:
             for i in range(room.width()):
                 tile = room[e][i]
@@ -210,13 +213,23 @@ class View:
                 string.append(tile.symbol)
             string.append('\n')
         return ''.join(string)
+    
+    def render(self, player_tile):
+        string = [[] for _ in range(9)]
+        for i, row in enumerate(self.index[7-1:14+1]):
+            for tile in row[7-1:14+1]:
+                string[i].append(tile.symbol)
                 
+        x, y = player_tile.coords()
+        string[y+1][x+1] = "{}"
                 
-                    
+        return '\n'.join((''.join(l) for l in string))
+
+
+
 class Adventure:
     def __init__(self):
-        self.player_dx = 0
-        self.player_dy = 0
+        pass
 
     def build_dungeon(self):
         self.dungeon = Chart(x=0, y=0, parent=None)
@@ -237,83 +250,24 @@ class Adventure:
         # We connect the bordering tiles in the current_room to the connected neighbouring (warp) rooms
         connect_bordering_tiles(self.current_room)
         
-        view = View(n9) # create an index containing all the tiles in the rooms in n9
-        
-        print(repr(self.current_room))
-        print(view)
-        print(repr(self.dungeon))
-        print(self.dungeon)
-        
+        self.view = View(n9) # create an index containing all the tiles in the rooms in n9
+    
+    def available_tile(self):
+        for row in self.current_room:
+            for tile in row:
+                if isinstance(tile, Tile2) and tile.symbol == VARIANT.WALKABLE:
+                    return tile
 
-    def create_room(self, x, y):
-        variant = self.map[y][x].variant
-        if variant == 'O':
-            preset = random.choice(RoomGen.basic.keys())
-        else:
-            preset = 'default'
-        return RoomGen(preset, self.map[y][x].connections)
-
-    def set_room(self, x, y, room):
-        self.rooms[self.width*y+x] = room
-
-    def get_room(self, x, y):
-        return self.rooms[self.width*y+x]
-
-    def get_current_room(self):
-        return self.current_room
-
-    # player control functions
-    def change_room(self, dx, dy):
-        new_x = self.current_x+dx
-        new_y = self.current_y+dy
-        if not self.get_room(new_x, new_y):
-            room = self.create_room(new_x, new_y)
-            self.set_room(new_x, new_y, room)
-        self.current_x = new_x
-        self.current_y = new_y
-        self.current_room = self.get_room(self.current_x, self.current_y)
-        if dx<0:
-            self.player_x = self.current_room.width-2
-        elif dx>0:
-            self.player_x = 1
-        if dy<0:
-            self.player_y = self.current_room.height-2
-        elif dy>0:
-            self.player_y = 1
-
-    def get_player_neighbour(self, direction):
-        dir = Adventure.directions.get(direction)
-        if (direction=='N' and self.player_y>0) or\
-            (direction=='S' and self.player_y<self.get_current_room().height) or\
-            (direction=='E' and self.player_x<self.get_current_room().width) or\
-            (direction=='W' and self.player_x>0):
-            return self.get_current_room().neighbour(self.get_current_room().tiles[self.player_y][self.player_x], dir)
-        else:
-            return None
-
-    def set_player_movement(self, direction):
-        destination = self.get_player_neighbour(direction)
-        if destination.variant == 'f':
-            self.player_dx, self.player_dy = tuple(Adventure.directions.get(direction))
-        elif destination.variant == 'd':
-            door = destination
-            doors = self.current_room.doors
-            if door.x == 0:
-                self.change_room(-1,0)
-            elif door.x == self.current_room.width-1:
-                self.change_room(1,0)
-            elif door.y == 0:
-                self.change_room(0,-1)
-            elif door.y == self.current_room.height-1:
-                self.change_room(0,1)
-
-    def update(self):
-        # update positions
-        self.player_x += self.player_dx
-        self.player_y += self.player_dy
-        # reset deltas
-        self.player_dx = 0
-        self.player_dy = 0
+    def move_player(self, direction):
+        if direction in self.player_tile.connections:
+            next_tile = self.player_tile.neighbours[direction]
+            if isinstance(next_tile, Warp):
+                coords = next_tile.coords() #save tile coords
+                x, y = self.current_room.coords()
+                adv.build_room(x+direction.x, y+direction.y)
+                self.player_tile = self.current_room[coords[1]][coords[0]]
+            else:
+                self.player_tile = self.player_tile.neighbours[direction]
 
 if __name__ == '__main__':
     import conio as io
@@ -322,17 +276,17 @@ if __name__ == '__main__':
     adv_rnd = io.AdventureRenderer(adv)
     adv.build_dungeon()
     adv.build_room(adv.seed.x, adv.seed.y)
+    adv.player_tile = adv.available_tile() #initial room
+    
     while(True):
-        adv_rnd.draw_room()
+        print(adv.view.render(adv.player_tile))
+        from functools import partial
         key = get_key()
-        if key == 'w':
-            adv.set_player_movement('N')
-        elif key == 's':
-            adv.set_player_movement('S')
-        elif key == 'a':
-            adv.set_player_movement('W')
-        elif key == 'd':
-            adv.set_player_movement('E')
-        adv.update()
+        {
+            'w': partial(adv.move_player, NORTH),
+            'd': partial(adv.move_player, EAST),
+            's': partial(adv.move_player, SOUTH),
+            'a': partial(adv.move_player, WEST),
+        }.get(key, lambda: None)()
+        
         io.cls()
-        adv_rnd.draw_map()
