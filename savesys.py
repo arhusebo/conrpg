@@ -1,7 +1,7 @@
 import os
 import json
 import configparser
-from item import Item_constructor
+from item import Item_constructor, Inventory
 
 class Settings:
     """Instantiable class for reading and writing settings"""
@@ -33,10 +33,10 @@ def save_game(path, player):
     data['name'] = player.name
     data['level'] = player.level
     data['exp'] = player.exp
-    data['gold'] = player.gold
+    data['gold'] = player.inventory.gold
     data['hp'] = player.hp
-    data['inventory'] = list(player.inventory.keys())
-    data['inventory_slots'] = player.inventory_slots
+    data['inventory'] = player.inventory.item_names()
+    data['inventory_slots'] = player.inventory.capacity
     data['base_attributes'] = player.base_attributes
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -52,17 +52,16 @@ def load_game(path, player, items):
     else:
         return False
 
-    inventory_items = {}
-    for item_name in data.get('inventory'):
-        inventory_items[item_name] = Item_constructor(item_name)
-
     player.name = data.get('name', "Player")
     player.level = data.get('level', 1)
     player.exp = data.get('exp', 0)
-    player.gold = data.get('gold', 0)
     player.hp = data.get('hp', 1)
-    player.inventory = inventory_items
-    player.inventory_slots = data.get('inventory_slots', {})
+    player.inventory = Inventory(
+        capacity = data.get('inventory_slots', 0),
+        gold = data.get('gold', 0)
+    )
+    for item_name in data.get('inventory'):
+        player.inventory.add(Item_constructor(item_name))
     player.base_attributes = data.get('base_attributes')
     
     return True

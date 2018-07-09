@@ -1,3 +1,5 @@
+from item import Inventory
+
 class Actor():
     """Base Actor class, not meant to be used on its own, but rather inherited from."""
     
@@ -9,9 +11,7 @@ class Actor():
     def __init__(self, **kwargs):
         self.name = "Actor"
         self.level = 1
-        self.gold =  0
-        self.inventory = {}
-        self.inventory_slots = 0
+        self.inventory = Inventory(capacity = 0, gold = 0)
 
         # default base attributes
         self.base_attributes = {
@@ -51,21 +51,6 @@ class Actor():
         
         self.status_effects = {}
 
-    def add_item(self, item):
-        """Tries to add item to actor inventory based on available inventory slots.
-
-        Parameters:
-        name -- name of item being added
-        item -- dictionary containing key-value pairs of attributes
-
-        Returns:
-        True if added successfully, False otherwise
-        """
-        if len(self.inventory) < self.inventory_slots:
-            self.inventory[item.name] = item
-            return True
-        return False
-
     def add_status_effect(self, effect, duration):
         """adds a status effect with a duration of game turns"""
         if effect in Actor.STATUS_EFFECT_FUNCTIONS:
@@ -97,11 +82,11 @@ class Actor():
 
     def get_bonus_attack(self):
         from item import Weapon
-        return sum(item.attack for item in self.inventory.values() if isinstance(item, Weapon))
+        return sum(item.attack for item in self.inventory if isinstance(item, Weapon))
 
     def get_bonus_defence(self):
         from item import Armour
-        return sum(item.defence for item in self.inventory.values() if isinstance(item, Armour))
+        return sum(item.defence for item in self.inventory if isinstance(item, Armour))
     
     def get_bonus_accuracy(self):
         #return sum(item.accuracy for item in self.inventory.values() if isinstance(item, Item))
@@ -126,9 +111,6 @@ class Actor():
 
     def is_dead(self):
         return self.hp == 0
-
-    def get_inventory_item_names(self):
-        return [item.name for item in self.inventory]
 
     def set_attributes(self, level):
         """Sets actor stats based on level"""
@@ -160,12 +142,6 @@ class Player(Actor):
             self.level += 1
             self.set_attributes(self.level)
 
-    def remove_gold(self, amount):
-        """Removes given amount. Returns False if there is insufficient gold available."""
-        if self.gold < amount:
-            return False
-        self.gold -= amount
-        return True
 
 class Monster(Actor):
     """Monster class for monster specific data and methodology."""

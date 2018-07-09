@@ -93,9 +93,9 @@ class Game():
             io.msg("Inventory")
             io.skip_line()
             item_display_list = [["Item", "Value", "Description"]]
-            for item in self.player.inventory.values():
+            for item in self.player.inventory:
                 item_display_list.append([item.name, item.value, item.info])
-            empty_slots = self.player.inventory_slots-len(self.player.inventory)
+            empty_slots = self.player.inventory.free_space()
             for s in range(empty_slots):
                 item_display_list.append(["[  EMPTY  ]", "---", "---"])
 
@@ -104,7 +104,7 @@ class Game():
 
             # Print gold
             io.skip_line(2)
-            io.msg(f"{self.player.gold} gold")
+            io.msg(f"{self.player.inventory.gold} gold")
             io.skip_line(2)
 
             # Options
@@ -124,20 +124,19 @@ class Game():
             io.cls()
 
             from item import Consumable
-            consumables = [c for c in self.player.inventory.values() if isinstance(c, Consumable)]
+            consumables = [c for c in self.player.inventory if isinstance(c, Consumable)]
             consumable_names = [i.name for i in consumables]
             if len(consumables) > 0:
                 choice = io.menu("Use item", consumable_names, "Cancel")
 
                 #FIX subclass restorable items
                 if choice in consumable_names:
-                    consumable = self.player.inventory[choice]
+                    consumable = self.player.inventory.remove(choice)
                     self.player.heal(consumable.restore)
                     io.msg(f"""
                         You have healed yourself for {consumable.restore} hp.
                         You now have {self.player.hp}/{self.player.attributes['health']} hp.
                     """)
-                    del self.player.inventory[choice]
                     io.acknowledge()
                 else:
                     consuming = False
@@ -155,7 +154,7 @@ class Game():
             buying = True
             while buying:
                 io.cls()
-                choice = io.menu(f"Buy item\tGold: {self.player.gold}", self.ITEMS_SHOP, abort="Back")
+                choice = io.menu(f"Buy item\tGold: {self.player.inventory.gold}", self.ITEMS_SHOP, abort="Back")
                 if choice == "Back":
                     buying = False
                     break
@@ -163,9 +162,9 @@ class Game():
                 item = Item_constructor(name=choice)
                 accept_transaction = io.bin_choice(f"Buy {item.name} for {item.value} gold?")
                 if accept_transaction:
-                    if self.player.gold >= item.value:
-                        if self.player.add_item(item):
-                            self.player.gold -= item.value
+                    if self.player.inventory.gold >= item.value:
+                        if self.player.inventory.add(item):
+                            self.player.inventory.gold -= item.value
                             continue
 
                         buying = io.bin_choice("Inventory full. Return?")
@@ -177,18 +176,18 @@ class Game():
             selling = True
             while selling:
                 io.cls()
-                cs = io.menu("Sell item", self.player.inventory.keys(), abort="Back")
+                cs = io.menu("Sell item", self.player.inventory.item_names(), abort="Back")
                 if cs == "Back":
                     selling = False
                     break
 
                 io.cls()
-                item = self.player.inventory[cs]
+                item = self.player.inventory.item_by_name(cs)
                 sell_value = int(item.value/2)
                 accept_transaction = io.bin_choice(f"Sell {item.name} for {sell_value} gold?")
                 if accept_transaction:
-                    self.player.gold += sell_value
-                    del self.player.inventory[cs]
+                    self.player.inventory.gold += sell_value
+                    self.player.inventory.remove(cs)
             return STATUS.SUCCESS
 
         shopping = True
@@ -226,8 +225,10 @@ class Game():
             io.msg("You have {}/{} HP".format(self.player.hp, self.player.attributes['health']))
             if io.bin_choice("Restore 100 HP? (10 gold)"):
                 if self.player.hp < self.player.attributes['health']:
-                    self.player.gold -= 10
-                    self.player.heal(100)
+                    if self.player.inventory.gold >= 10:
+                        self.player.inventory.gold -= 10
+                        self.player.heal(100)
+                    io.acknowledge("You don't have enough gold!")
                 else:
                     if io.bin_choice("You are already at full health. Go back?"):
                         healing = False
@@ -378,11 +379,11 @@ class Game():
                 self.player.base_attributes['defence'] = 10
                 self.player.set_attributes(level = 1)
                 self.player.exp = 0
-                self.player.gold = 300
-                self.player.inventory_slots = 4
+                self.player.inventory.gold = 300
+                self.player.inventory.capacity = 4
                 for item_name in self.ITEMS_START:
                     item = Item(item_name, **self.items[item_name])
-                    self.player.add_item(item)
+                    self.player.inventory.add(item)
                 creating_char = False
             io.cls()
         self.town()
