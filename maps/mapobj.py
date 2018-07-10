@@ -89,6 +89,7 @@ class Map:
 class VARIANT:
     WALL  = '██'
     WALKABLE  = '  '
+    UNEXPLORED = '▒▒'
     
     EMPTY = '*'
     ROOM  = 'O'
@@ -97,7 +98,14 @@ class VARIANT:
     TREASURE = 'T'
     
     CHART = '#'
-    
+
+
+class TREASURE:
+    SILVER = '++'
+
+class MONSTER:
+    RAT = '::'
+
 
 class QuadCell:
     __slots__ = ['x', 'y', 'variant', 'symbol', 'parent', 'neighbours', 'connections']
@@ -222,14 +230,37 @@ class Tile2(QuadCell):
     def __init__(self, **kwargs):
         super().__init__(variant="Tile", symbol=VARIANT.EMPTY, **kwargs)
         self.connections = set()
-
+    
 
 class Room(Tree):
     """
     Room tile object. Is the child of Chart and contains Tile2 as children.
     """
+    __slots__ = ("monster", "treasure")
     def __init__(self, **kwargs):
         super().__init__(variant="Room", symbol=VARIANT.EMPTY, **kwargs)
+        self.monster = {}
+        self.treasure = {}
+    
+    def available_tiles(self):
+        tiles = []
+        for row in self.children[0+1:7-1]:
+            for tile in row[0+1:7-1]:
+                if tile.symbol == VARIANT.WALKABLE:
+                    c = tile.coords()
+                    if c in self.monster or c in self.treasure:
+                        continue
+                    tiles.append(c)
+        return tiles
+    
+    
+    def add_treasure(self):
+        from random import choice
+        self.treasure = {choice(self.available_tiles()): self.parent.treasures[self.coords()]}
+    
+    def add_monster(self):
+        from random import choice
+        self.monster = {choice(self.available_tiles()): self.parent.monsters[self.coords()]}
     
 class Chart(Tree):
     """
@@ -241,6 +272,18 @@ class Chart(Tree):
         self.monsters = monsters.copy()
         self.treasures = treasures.copy()
         self.explored = explored.copy()
+    
+    def add_treasures(self):
+        for row in self.children:
+            for room in row:
+                if room.symbol == VARIANT.TREASURE:
+                    self.treasures[room.coords()] = TREASURE.SILVER
+        
+    def add_monsters(self):
+        for row in self.children:
+            for room in row:
+                if room.symbol == VARIANT.ROOM or room.symbol == VARIANT.BOSS:
+                    self.monsters[room.coords()] = MONSTER.RAT
 
 class Overworld(Tree):
     pass

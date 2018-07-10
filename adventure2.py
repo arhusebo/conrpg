@@ -17,6 +17,15 @@ class ROOM_PRESETS:
         """.strip('\n'))
     boss = default
     treasure = default
+    unexplored = dedent("""
+        wwwwwww
+        wuuuuuw
+        wuuuuuw
+        wuuuuuw
+        wuuuuuw
+        wuuuuuw
+        wwwwwww
+        """.strip('\n'))
     wall = dedent("""
         wwwwwww
         wwwwwww
@@ -127,13 +136,19 @@ def room_generator(room):
                     tile.connections.add(neighbour_dir)
                     neighbour.connections.add(-neighbour_dir)
     
+    if room.coords() in room.parent.treasures:
+        room.add_treasure()
+        
+    if room.coords() in room.parent.monsters:
+        room.add_monster()
+    
     return room
 
 def warp_generator(room):
     if room.coords() in room.parent.explored:
         preset = room.parent.explored.get(room.coords())
     elif room.symbol in {VARIANT.ROOM, VARIANT.BOSS, VARIANT.TREASURE}:
-        preset = ROOM_PRESETS.default
+        preset = ROOM_PRESETS.unexplored
     else: # Placeholder room
         preset = ROOM_PRESETS.wall
     
@@ -164,6 +179,7 @@ def warp_generator(room):
             tile.symbol = {
                 'w' : VARIANT.WALL,
                 'o' : VARIANT.WALKABLE,
+                'u' : VARIANT.UNEXPLORED,
             }.get(c, VARIANT.WALL)
     
     return room
@@ -199,11 +215,14 @@ def connect_bordering_tiles(room):
 
 class View:
     def __init__(self, n9):
-        width = n9[0][0].width()
-        height = n9[0][0].height()
+        self.center_room = n9[1][1]
+        
+        width = self.center_room .width()
+        height = self.center_room .height()
         self.index = [[None for i in range(3*width)] for j in range(3*height)]
         for i in range(len(self.index)):
             for j in range(len(self.index[0])):
+                #charlie foxtrot
                 self.index[j][i] = n9 [j//height][i//width] [j%height][i%width]
         
     def __str__(self):
@@ -215,13 +234,22 @@ class View:
         return ''.join(string)
     
     def render(self, player_tile):
-        string = [[] for _ in range(9)]
-        for i, row in enumerate(self.index[7-1:14+1]):
-            for tile in row[7-1:14+1]:
+        o = 2 #offset
+        string = [[] for _ in range(o+7+o)]
+        for i, row in enumerate(self.index[7-o:14+o]):
+            for tile in row[7-o:14+o]:
                 string[i].append(tile.symbol)
-                
+        
+        for coords, treasure in self.center_room.treasure.items():
+            tx, ty = coords
+            string[ty+o][tx+o] = treasure
+            
+        for coords, monster in self.center_room.monster.items():
+            mx, my = coords
+            string[my+o][mx+o] = monster
+        
         x, y = player_tile.coords()
-        string[y+1][x+1] = "{}"
+        string[y+o][x+o] = "{}"
                 
         return '\n'.join((''.join(l) for l in string))
 
@@ -232,10 +260,17 @@ class Adventure:
         pass
 
     def build_dungeon(self):
+        #Make empty dungeon
         self.dungeon = Chart(x=0, y=0, parent=None)
+        #Fill dungeon with children
         self.dungeon.fill(width=20, height=10, child_constructor=Room)
+        #Choose a seed (at border)
         self.seed = maps.mapgen.border_entry2(self.dungeon)
+        #Make rooms starting from seed
         maps.mapgen.dungeon_generator2(self.dungeon, self.seed)
+        #Add treasures and monsters
+        self.dungeon.add_treasures()
+        self.dungeon.add_monsters()
         
     def build_room(self, x, y):
         self.current_room = self.dungeon[y][x]
@@ -265,9 +300,19 @@ class Adventure:
                 coords = next_tile.coords() #save tile coords
                 x, y = self.current_room.coords()
                 adv.build_room(x+direction.x, y+direction.y)
+                #move player to new room
                 self.player_tile = self.current_room[coords[1]][coords[0]]
             else:
                 self.player_tile = self.player_tile.neighbours[direction]
+        
+        c = self.player_tile.coords()
+        if c in self.current_room.treasure:
+            input("You found a treasure!")
+            self.current_room.treasure.pop(c)
+            
+        if c in self.current_room.monster:
+            input("You encountered a monster. Prepare to fight!")
+            self.current_room.monster.pop(c)
 
 if __name__ == '__main__':
     import conio as io
@@ -279,6 +324,7 @@ if __name__ == '__main__':
     adv.player_tile = adv.available_tile() #initial room
     
     while(True):
+        io.cls()
         print(adv.view.render(adv.player_tile))
         from functools import partial
         key = get_key()
@@ -288,5 +334,3 @@ if __name__ == '__main__':
             's': partial(adv.move_player, SOUTH),
             'a': partial(adv.move_player, WEST),
         }.get(key, lambda: None)()
-        
-        io.cls()
