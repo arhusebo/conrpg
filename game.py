@@ -4,20 +4,12 @@ import random
 import json
 import time
 import conio as io
+import adventure2
+from status import STATUS
 from actor import Player, Monster
 from item import *
 from battle import *
 from savesys import *
-
-class STATUS:
-    SUCCESS = True
-    EXIT = False
-
-    @staticmethod
-    def ESCAPE(): return False
-
-    @staticmethod
-    def CONTINUE(): return True
 
 class Game():
     def __init__(self):
@@ -53,7 +45,7 @@ class Game():
                 "*Inventory"       : self.inventory,
                 "*Shop"            : self.shop,
                 "*Healing"         : self.healing,
-                "*Enter Dungeon (Battle)": self.battle,
+                "*Enter Dungeon"   : self.adventure,
                 "*Main menu"       : STATUS.ESCAPE,
             }
             c = io.map_menu("What do you want to do?", options.keys(), abort="*Main menu")
@@ -238,13 +230,13 @@ class Game():
         time.sleep(1)
         io.cls()
         return STATUS.SUCCESS
-
+    
+    # Dungeon
+    adventure = adventure2.adventure
+    
     # Battle screen
     def battle(self):
-        io.msg("Delving into the dungeon...")
-        time.sleep(1)
         io.cls()
-
         enemies_at_level = []
         for monster in self.monsters.keys():
             level_range = range(self.monsters.get(monster).get('level_min'), self.monsters.get(monster).get('level_max'))
@@ -281,11 +273,14 @@ class Game():
             
             io.cls()
             time.sleep(.2)
-            if player_start: show_player_outcomes()
-            else: show_monster_outcomes()
-            time.sleep(.5)
-            if player_start: show_monster_outcomes()
-            else: show_player_outcomes()
+            if player_start:
+                show_player_outcomes()
+                time.sleep(.5)
+                show_monster_outcomes()
+            else:
+                show_monster_outcomes()
+                time.sleep(.5)
+                show_player_outcomes()
             time.sleep(1.5)
             if('kill' in player_attack_outcomes):
                 io.msg(f"{battle.monster.name} dies. You are victorious!")
@@ -319,28 +314,28 @@ class Game():
             fighting = options.get(c, STATUS.CONTINUE)()
             io.cls()
 
-        def loot():
-            io.cls()
-            io.acknowledge("To be implemented")
-            return STATUS.SUCCESS
-
         looting = battle.monster.is_dead()
         while looting:
             options = {
-                "*Loot"      : loot,
+                "*Loot"      : self.loot,
                 "*Inventory" : self.inventory,
                 "*Stats"     : self.stats,
-                "*Return to town"     : STATUS.ESCAPE,
+                "*Return to dungeon" : STATUS.ESCAPE,
             }
-            c = io.map_menu("Choose an option", options.keys(), "*Return to town")
+            c = io.map_menu("Choose an option", options.keys(), "*Return to dungeon")
             looting = options.get(c, STATUS.CONTINUE)()
             io.cls()
 
-        io.msg("Returning to town...")
-        time.sleep(1)
+        io.msg("Returning to dungeon...", duration=1)
         io.cls()
         return STATUS.SUCCESS
-
+    
+    
+    def loot(self):
+        io.cls()
+        io.acknowledge("To be implemented")
+        return STATUS.SUCCESS
+    
     # Below is non-ingame related parts
     # Main menu screen and highest parent
     def main_menu(self):

@@ -1,5 +1,9 @@
 import random
 import maps.mapgen
+import conio as io
+from status import STATUS
+from listener import get_key
+from functools import partial
 from textwrap import dedent
 from maps.mapobj import VARIANT, Warp, Tile2, Room, Chart
 from maps.directions import NORTH, EAST, SOUTH, WEST, DIRECTIONS
@@ -256,13 +260,13 @@ class View:
 
 
 class Adventure:
-    def __init__(self):
-        pass
+    def __init__(self, game):
+        self.game = game
 
     def build_dungeon(self):
         #Make empty dungeon
         self.dungeon = Chart(x=0, y=0, parent=None)
-        #Fill dungeon with children
+        #Fill dungeon with empty children
         self.dungeon.fill(width=20, height=10, child_constructor=Room)
         #Choose a seed (at border)
         self.seed = maps.mapgen.border_entry2(self.dungeon)
@@ -299,7 +303,7 @@ class Adventure:
             if isinstance(next_tile, Warp):
                 coords = next_tile.coords() #save tile coords
                 x, y = self.current_room.coords()
-                adv.build_room(x+direction.x, y+direction.y)
+                self.build_room(x+direction.x, y+direction.y)
                 #move player to new room
                 self.player_tile = self.current_room[coords[1]][coords[0]]
             else:
@@ -307,30 +311,45 @@ class Adventure:
         
         c = self.player_tile.coords()
         if c in self.current_room.treasure:
-            input("You found a treasure!")
+            io.acknowledge("You found a treasure!")
+            self.game.loot()
             self.current_room.treasure.pop(c)
+            self.dungeon.treasures.pop(self.current_room.coords())
             
         if c in self.current_room.monster:
-            input("You encountered a monster. Prepare to fight!")
+            io.acknowledge("You encountered a monster. Prepare to fight!")
+            self.game.battle()
             self.current_room.monster.pop(c)
+            self.dungeon.monsters.pop(self.current_room.coords())
+        
+        return STATUS.SUCCESS
 
-if __name__ == '__main__':
-    import conio as io
-    from listener import get_key
-    adv = Adventure()
+def adventure(game):
+    io.msg("Delving into the deeps", duration=1)
+    
+    adv = Adventure(game)
     adv_rnd = io.AdventureRenderer(adv)
     adv.build_dungeon()
     adv.build_room(adv.seed.x, adv.seed.y)
     adv.player_tile = adv.available_tile() #initial room
     
-    while(True):
+    dungeoning = True
+    while dungeoning:
         io.cls()
         print(adv.view.render(adv.player_tile))
-        from functools import partial
+        
         key = get_key()
-        {
+        dungeoning = {
             'w': partial(adv.move_player, NORTH),
             'd': partial(adv.move_player, EAST),
             's': partial(adv.move_player, SOUTH),
             'a': partial(adv.move_player, WEST),
+            'ESC': STATUS.ESCAPE,
         }.get(key, lambda: None)()
+    
+    io.msg("Returning to town...", duration=1)
+    
+    return STATUS.SUCCESS
+
+if __name__ == '__main__':
+    adventure()

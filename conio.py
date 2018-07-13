@@ -110,14 +110,18 @@ class Graphics:
             """)
         print(out)
 
-def msg(msg, end='\n'):
+def msg(msg, end='\n', duration=None):
     """Prints a single- or multi lined message to the screen."""
     print(dedent(msg.strip('\n')), end=end)
+    if duration:
+        import time
+        time.sleep(1)
+
 
 def acknowledge(msg='', end='\n'):
     """Prints a single- or multi lined message to the screen."""
     print(dedent(msg.strip('\n')), end=end)
-    print("\nPress any key to return.")
+    print("\nPress any key to continue.")
     listener.get_key()
 
 def text_in(prompt):
