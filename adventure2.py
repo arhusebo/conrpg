@@ -345,7 +345,7 @@ def adventure(game):
             's': partial(adv.move_player, SOUTH),
             'a': partial(adv.move_player, WEST),
             'ESC': STATUS.ESCAPE,
-        }.get(key, lambda: None)()
+        }.get(key, STATUS.CONTINUE)()
     
     io.msg("Returning to town...", duration=1)
     io.cls()
