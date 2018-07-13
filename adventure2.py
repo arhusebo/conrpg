@@ -348,6 +348,7 @@ def adventure(game):
         }.get(key, lambda: None)()
     
     io.msg("Returning to town...", duration=1)
+    io.cls()
     
     return STATUS.SUCCESS
 

@@ -333,7 +333,9 @@ class Game():
     
     def loot(self):
         io.cls()
-        io.acknowledge("To be implemented")
+        gold = random.randint(10, 30)
+        self.player.inventory.gold += gold
+        io.acknowledge(f"You found {gold} gold!")
         return STATUS.SUCCESS
     
     # Below is non-ingame related parts
