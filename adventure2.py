@@ -89,7 +89,27 @@ class ROOM_PRESETS:
             woowoow
             wooooow
             wwwwwww
-            """.strip('\n'))
+            """.strip('\n')),
+        "basic_6":
+            dedent("""
+            wwwwwww
+            wooooow
+            wooowow
+            woowoow
+            wowooow
+            wooooow
+            wwwwwww
+            """.strip('\n')),
+        "basic_7":
+            dedent("""
+            wwwwwww
+            wooooow
+            wowowow
+            wooooow
+            wowowow
+            wooooow
+            wwwwwww
+            """.strip('\n')),
     }
 
 def room_generator(room):
