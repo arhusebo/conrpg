@@ -13,25 +13,25 @@ class Actor():
         self.level = 1
         self.inventory = Inventory(capacity = 0, gold = 0)
 
-        # default base attributes
-        self.base_attributes = {
-            "health":1,
-            "attack":0,
-            "defence":0,
-            "accuracy":.7,
-            "evasion":.3,
-            "speed":1,
+        # default base stats
+        self.base_stats = {
+            "health":   1,
+            "attack":   0,
+            "defence":  0,
+            "accuracy": 0.7,
+            "evasion":  0.3,
+            "speed":    1,
         }
         
         for key, value in kwargs.items():
-            if key in self.base_attributes:
-                self.base_attributes[key] = value
+            if key in self.base_stats:
+                self.base_stats[key] = value
         
-        # set current character attributes
-        self.attributes = self.base_attributes.copy()
-        self.set_attributes(self.level)
+        # set current character stats
+        self.stats = self.base_stats.copy()
+        self.set_stats(self.level)
         
-        self.item_attributes = {
+        self.item_stats = {
             "health":0,
             "attack":0,
             "defence":0,
@@ -40,7 +40,7 @@ class Actor():
             "speed":0,
         }
         
-        self.effect_attributes = {
+        self.effect_stats = {
             "health":0,
             "attack":0,
             "defence":0,
@@ -71,11 +71,11 @@ class Actor():
                 del status_effects[key]
         self.status_effects = status_effects
     
-    def get_attributes():
-        return sum(base_attributes, item_attribues, )
+    def get_stats():
+        return sum(base_stats, item_attribues, )
 
     def heal(self, amount):
-        self.hp = min(self.attributes['health'], self.hp + amount)
+        self.hp = min(self.stats['health'], self.hp + amount)
 
     def damage(self, amount):
         self.hp = max(0, self.hp - amount)
@@ -101,28 +101,28 @@ class Actor():
         return 0
 
     def get_total_accuracy(self):
-        return self.base_attributes['accuracy'] + self.get_bonus_accuracy()
+        return self.base_stats['accuracy'] + self.get_bonus_accuracy()
 
     def get_total_evasion(self):
-        return self.base_attributes['evasion'] + self.get_bonus_evasion()
+        return self.base_stats['evasion'] + self.get_bonus_evasion()
     
     def get_total_speed(self):
-        return self.base_attributes['speed'] + self.get_bonus_speed()
+        return self.base_stats['speed'] + self.get_bonus_speed()
 
     def is_dead(self):
         return self.hp == 0
 
-    def set_attributes(self, level):
+    def set_stats(self, level):
         """Sets actor stats based on level"""
         self.level = level
-        attributes = {
-            "attack":self.base_attributes["attack"] + level - 1,
-            "defence":self.base_attributes["defence"] + level - 1,
-            "health":self.base_attributes["health"] + 10 * (level - 1),
+        stats = {
+            "attack":self.base_stats["attack"] + level - 1,
+            "defence":self.base_stats["defence"] + level - 1,
+            "health":self.base_stats["health"] + 10 * (level - 1),
         }
-        self.attributes = attributes
+        self.stats = stats
 
-        self.hp = attributes["health"]
+        self.hp = stats["health"]
     
 class Player(Actor):
     """Player class for player specific data and methodology."""
@@ -140,16 +140,16 @@ class Player(Actor):
     def levelup(self):
         while self.exp > self.get_exp_next_level():
             self.level += 1
-            self.set_attributes(self.level)
+            self.set_stats(self.level)
 
 
 class Monster(Actor):
     """Monster class for monster specific data and methodology."""
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, level_min = 0, level_max = 0, **kwargs):
         super().__init__()
         self.name = name
-        self.level_min = kwargs.get('level_min', 0)
-        self.level_max = kwargs.get('level_max', 0)
+        self.level_min = level_min
+        self.level_max = level_max
 
 if __name__ == '__main__':
     actor = Actor(health=100)

@@ -24,12 +24,12 @@ class Battle():
         elif attacker.get_total_accuracy() * (1-defender.get_total_evasion()) < hit_roll:
             outcomes.add('dodge')
         else:
-            damage_raw = attacker.attributes['attack'] + attacker.get_bonus_attack()
+            damage_raw = attacker.stats['attack'] + attacker.get_bonus_attack()
             deviation = int(random.uniform(-damage_raw/4,damage_raw/4)+.5)
             damage_raw += deviation
-            defence = defender.attributes['defence'] + defender.get_bonus_defence()
+            defence = defender.stats['defence'] + defender.get_bonus_defence()
             if defence:
-                damage_points = int(damage_raw / (defender.attributes['defence'] + defender.get_bonus_defence()))
+                damage_points = int(damage_raw / (defender.stats['defence'] + defender.get_bonus_defence()))
             else:
                 damage_points = damage_raw
             defender.damage(damage_points)

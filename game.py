@@ -59,18 +59,18 @@ class Game():
 
         io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, f"{self.player.name}, level {self.player.level} Adventurer",True)
         io.skip_line(3)
-        io.progress_bar(self.player.hp, self.player.attributes['health'], 25, "Health", True)
+        io.progress_bar(self.player.hp, self.player.stats['health'], 25, "Health", True)
         io.skip_line(1)
         io.progress_bar(100, 100, 25, "Energy", True)
         io.skip_line(1)
         io.progress_bar(100, 100, 25, "Hunger")
         io.skip_line(2)
         io.table(
-            ["Attack", f"{self.player.attributes['attack']}",f"(+{self.player.get_bonus_attack()})"],
-            ["Defence", f"{self.player.attributes['defence']}",f"(+{self.player.get_bonus_defence()})"],
-            ["Accuracy", f"{self.player.base_attributes['accuracy']}",f"(+{self.player.get_bonus_accuracy()})"],
-            ["Evasion", f"{self.player.base_attributes['evasion']}",f"(+{self.player.get_bonus_evasion()})"],
-            ["Speed", f"{self.player.base_attributes['speed']}",f"(+{self.player.get_bonus_speed()})"],
+            ["Attack", f"{self.player.stats['attack']}",f"(+{self.player.get_bonus_attack()})"],
+            ["Defence", f"{self.player.stats['defence']}",f"(+{self.player.get_bonus_defence()})"],
+            ["Accuracy", f"{self.player.base_stats['accuracy']}",f"(+{self.player.get_bonus_accuracy()})"],
+            ["Evasion", f"{self.player.base_stats['evasion']}",f"(+{self.player.get_bonus_evasion()})"],
+            ["Speed", f"{self.player.base_stats['speed']}",f"(+{self.player.get_bonus_speed()})"],
         )
 
         io.acknowledge()
@@ -127,7 +127,7 @@ class Game():
                     self.player.heal(consumable.restore)
                     io.msg(f"""
                         You have healed yourself for {consumable.restore} hp.
-                        You now have {self.player.hp}/{self.player.attributes['health']} hp.
+                        You now have {self.player.hp}/{self.player.stats['health']} hp.
                     """)
                     io.acknowledge()
                 else:
@@ -214,9 +214,9 @@ class Game():
         while healing:
             io.cls()
             self.gfx.draw('healer')
-            io.msg("You have {}/{} HP".format(self.player.hp, self.player.attributes['health']))
+            io.msg("You have {}/{} HP".format(self.player.hp, self.player.stats['health']))
             if io.bin_choice("Restore 100 HP? (10 gold)"):
-                if self.player.hp < self.player.attributes['health']:
+                if self.player.hp < self.player.stats['health']:
                     if self.player.inventory.gold >= 10:
                         self.player.inventory.gold -= 10
                         self.player.heal(100)
@@ -245,7 +245,7 @@ class Game():
 
         enemy = random.choice(enemies_at_level)
         monster = Monster(enemy, **self.monsters[enemy])
-        monster.set_attributes(level = 2) #TEMP random.randint(monster.level_min, monster.level_max))
+        monster.set_stats(level = 2) #TEMP random.randint(monster.level_min, monster.level_max))
         battle = Battle(self.player, monster)
         io.msg(f"Encountered a level {monster.level} {monster.name}")
 
@@ -297,11 +297,11 @@ class Game():
         fighting = True
         while fighting:
             io.skip_line(2)
-            io.progress_bar(battle.player.hp, battle.player.attributes['health'], 25, battle.player.name, True)
+            io.progress_bar(battle.player.hp, battle.player.stats['health'], 25, battle.player.name, True)
             io.skip_line(4)
-            io.progress_bar(battle.monster.hp, battle.monster.attributes['health'], 25, battle.monster.name, True)
+            io.progress_bar(battle.monster.hp, battle.monster.stats['health'], 25, battle.monster.name, True)
             io.skip_line(4)
-            #io.msg(f"{battle.player.name}'s HP: {battle.player.hp}/{battle.player.attributes['health']}")
+            #io.msg(f"{battle.player.name}'s HP: {battle.player.hp}/{battle.player.stats['health']}")
             #io.msg(f"{battle.monster.name}'s HP: {battle.monster.hp}/{battle.monster.hp_max}")
 
             options = {
@@ -371,10 +371,10 @@ class Game():
             io.msg("Character name: " + char_name)
             if io.bin_choice("\nFinish Character creation and start game?") == True:
                 self.player.name = char_name
-                self.player.base_attributes['health'] = 100
-                self.player.base_attributes['attack'] = 10
-                self.player.base_attributes['defence'] = 10
-                self.player.set_attributes(level = 1)
+                self.player.base_stats['health'] = 100
+                self.player.base_stats['attack'] = 10
+                self.player.base_stats['defence'] = 10
+                self.player.set_stats(level = 1)
                 self.player.exp = 0
                 self.player.inventory.gold = 300
                 self.player.inventory.capacity = 4
@@ -391,7 +391,7 @@ class Game():
         io.cls()
         self.player = Player()
         if load_game('config/save.json', self.player, self.items):
-            self.player.set_attributes(level=self.player.level)
+            self.player.set_stats(level=self.player.level)
             self.town()
         else:
             io.msg("No saved game available.")
