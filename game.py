@@ -238,10 +238,10 @@ class Game():
     def battle(self):
         io.cls()
         enemies_at_level = []
-        for monster in self.monsters.keys():
-            level_range = range(self.monsters.get(monster).get('level_min'), self.monsters.get(monster).get('level_max'))
+        for monster_name, monster in self.monsters.items():
+            level_range = range(monster['level_min'], monster['level_max']+1)
             if self.player.level in level_range:
-                enemies_at_level.append(monster)
+                enemies_at_level.append(monster_name)
 
         enemy = random.choice(enemies_at_level)
         monster = Monster(enemy, **self.monsters[enemy])
