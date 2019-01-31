@@ -6,32 +6,37 @@
         "value"      : 10
     },
     "Knight Shield": {
-        "type"       : "armour",
-        "defence"    : 5,
+        "type"       : "equippable",
+        "stats"      : {"defense":5},
+        "slot"       : 4,
         "info"       : "Strong shield made for a knight",
         "value"      : 45
     },
     "Rusted Sword":  {
-        "type"       : "weapon",
-        "attack"     : 3,
+        "type"       : "equippable",
+        "stats"      : {"attack":3},
+        "slot"       : 3,
         "info"       : "Old, worn and rusted sword, probably iron",
         "value"      : 1
     },
     "Steel Sword":   {
-        "type"       : "weapon",
-        "attack"     : 8,
+        "type"       : "equippable",
+        "stats"      : {"attack":8},
+        "slot"       : 3,
         "info"       : "Robust sword made of steel",
         "value"      : 30
     },
     "Stick":         {
-        "type"       : "weapon",
-        "attack"     : 1,
+        "type"       : "equippable",
+        "stats"      : {"attack":1},
+        "slot"       : 3,
         "info"       : "Just a stick, nothing special",
         "value"      : 0
     },
     "Wooden Shield": {
-        "type"       : "armour",
-        "defence"    : 1,
+        "type"       : "equippable",
+        "stats"      : {"defense":1},
+        "slot"       : 4,
         "info"       : "Simple shield made of a piece of driftwood",
         "value"      : 0
     },

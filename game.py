@@ -7,6 +7,7 @@ import conio as io
 import adventure2
 from status import STATUS
 from actor import Player, Monster
+from stats import Stats
 from item import *
 from battle import *
 from savesys import *
@@ -59,18 +60,18 @@ class Game():
 
         io.progress_bar(self.player.exp, self.player.get_exp_next_level(), 50, f"{self.player.name}, level {self.player.level} Adventurer",True)
         io.skip_line(3)
-        io.progress_bar(self.player.hp, self.player.stats['health'], 25, "Health", True)
+        io.progress_bar(self.player.hp, self.player.get_stats().health, 25, "Health", True)
         io.skip_line(1)
         io.progress_bar(100, 100, 25, "Energy", True)
         io.skip_line(1)
         io.progress_bar(100, 100, 25, "Hunger")
         io.skip_line(2)
         io.table(
-            ["Attack", f"{self.player.stats['attack']}",f"(+{self.player.get_bonus_attack()})"],
-            ["Defence", f"{self.player.stats['defence']}",f"(+{self.player.get_bonus_defence()})"],
-            ["Accuracy", f"{self.player.base_stats['accuracy']}",f"(+{self.player.get_bonus_accuracy()})"],
-            ["Evasion", f"{self.player.base_stats['evasion']}",f"(+{self.player.get_bonus_evasion()})"],
-            ["Speed", f"{self.player.base_stats['speed']}",f"(+{self.player.get_bonus_speed()})"],
+            ["Attack", f"{self.player.get_stats().attack}"],#,f"(+{self.player.inventory.equipment_stats.attack})"],
+            ["Defence", f"{self.player.get_stats().defense}"],#,f"(+{self.player.inventory.equipment_stats.defense})"],
+            ["Accuracy", f"{self.player.get_stats().accuracy}"],#,f"(+{self.player.inventory.equipment_stats.accuracy})"],
+            ["Evasion", f"{self.player.get_stats().evasion}"],#,f"(+{self.player.inventory.equipment_stats.evasion})"],
+            ["Speed", f"{self.player.get_stats().speed}"],#,f"(+{self.player.inventory.equipment_stats.speed})"],
         )
 
         io.acknowledge()
@@ -85,8 +86,13 @@ class Game():
             io.msg("Inventory")
             io.skip_line()
             item_display_list = [["Item", "Value", "Description"]]
+            equipped_flag = "*"
             for item in self.player.inventory:
-                item_display_list.append([item.name, item.value, item.info])
+                item_name_display = item.name
+                if isinstance(item, Equippable):
+                    if item in self.player.inventory.equipment_slots:
+                        item_name_display = " ".join((item.name, equipped_flag))
+                item_display_list.append([item_name_display, item.value, item.info])
             empty_slots = self.player.inventory.free_space()
             for s in range(empty_slots):
                 item_display_list.append(["[  EMPTY  ]", "---", "---"])
@@ -209,14 +215,14 @@ class Game():
     def healing(self):
         io.msg("Visiting the healing temple...")
         time.sleep(1)
-        
+
         healing = True
         while healing:
             io.cls()
             self.gfx.draw('healer')
-            io.msg("You have {}/{} HP".format(self.player.hp, self.player.stats['health']))
+            io.msg("You have {}/{} HP".format(self.player.hp, self.player.get_stats().health))
             if io.bin_choice("Restore 100 HP? (10 gold)"):
-                if self.player.hp < self.player.stats['health']:
+                if self.player.hp < self.player.get_stats().health:
                     if self.player.inventory.gold >= 10:
                         self.player.inventory.gold -= 10
                         self.player.heal(100)
@@ -230,10 +236,10 @@ class Game():
         time.sleep(1)
         io.cls()
         return STATUS.SUCCESS
-    
+
     # Dungeon
     adventure = adventure2.adventure
-    
+
     # Battle screen
     def battle(self):
         io.cls()
@@ -244,8 +250,10 @@ class Game():
                 enemies_at_level.append(monster_name)
 
         enemy = random.choice(enemies_at_level)
-        monster = Monster(enemy, **self.monsters[enemy])
-        monster.set_stats(level = 2) #TEMP random.randint(monster.level_min, monster.level_max))
+        monster_level = random.randint(self.monsters[enemy]["level_min"],
+                                        self.monsters[enemy]["level_max"])
+        monster_stats = Stats(**self.monsters[enemy]["stats"])
+        monster = Monster(enemy, monster_level, monster_stats)
         battle = Battle(self.player, monster)
         io.msg(f"Encountered a level {monster.level} {monster.name}")
 
@@ -254,7 +262,7 @@ class Game():
             player_start, player_attack, monster_attack = battle.turn()
             player_attack_outcomes, player_attack_damage = player_attack
             monster_attack_outcomes, monster_attack_damage = monster_attack
-            
+
             def show_player_outcomes():
                 if 'hit' in player_attack_outcomes:
                     io.msg(f"You attack and hit the {battle.monster.name} for {player_attack_damage} HP")
@@ -262,7 +270,7 @@ class Game():
                     io.msg("You miss")
                 elif 'dodge' in player_attack_outcomes:
                     io.msg(f"{battle.monster.name} dodges your attack")
-            
+
             def show_monster_outcomes():
                 if 'hit' in monster_attack_outcomes:
                     io.msg(f"{battle.monster.name} attacks and hits you for {monster_attack_damage} HP")
@@ -270,7 +278,7 @@ class Game():
                     io.msg(f"{battle.monster.name} misses")
                 elif 'dodge' in monster_attack_outcomes:
                     io.msg(f"You dodge {battle.monster.name}'{'s'*(not battle.monster.name.endswith('s'))} attack")
-            
+
             io.cls()
             time.sleep(.2)
             if player_start:
@@ -297,12 +305,10 @@ class Game():
         fighting = True
         while fighting:
             io.skip_line(2)
-            io.progress_bar(battle.player.hp, battle.player.stats['health'], 25, battle.player.name, True)
+            io.progress_bar(battle.player.hp, battle.player.get_stats().health, 25, battle.player.name, True)
             io.skip_line(4)
-            io.progress_bar(battle.monster.hp, battle.monster.stats['health'], 25, battle.monster.name, True)
+            io.progress_bar(battle.monster.hp, battle.monster.get_stats().health, 25, f"{battle.monster.name} (lvl. {battle.monster.level})", True)
             io.skip_line(4)
-            #io.msg(f"{battle.player.name}'s HP: {battle.player.hp}/{battle.player.stats['health']}")
-            #io.msg(f"{battle.monster.name}'s HP: {battle.monster.hp}/{battle.monster.hp_max}")
 
             options = {
                 "*Attack"    : attack,
@@ -314,7 +320,7 @@ class Game():
             fighting = options.get(c, STATUS.CONTINUE)()
             io.cls()
 
-        looting = battle.monster.is_dead()
+        looting = not battle.monster.alive
         while looting:
             options = {
                 "*Loot"      : self.loot,
@@ -329,15 +335,15 @@ class Game():
         io.msg("Returning to dungeon...", duration=1)
         io.cls()
         return STATUS.SUCCESS
-    
-    
+
+
     def loot(self):
         io.cls()
         gold = random.randint(10, 30)
         self.player.inventory.gold += gold
         io.acknowledge(f"You found {gold} gold!")
         return STATUS.SUCCESS
-    
+
     # Below is non-ingame related parts
     # Main menu screen and highest parent
     def main_menu(self):
@@ -364,18 +370,18 @@ class Game():
         io.cls()
         io.msg(" -- Character Creation --")
         creating_char = True
-        self.player = Player()
+        player_base_stats = Stats(health=100.0,
+                                attack=10.0,
+                                defense=5.0,
+                                accuracy=0.7,
+                                evasion=0.3,
+                                speed=1.0)
         while creating_char:
             char_name = io.text_in("Choose a name for your Character: ")
             io.cls()
             io.msg("Character name: " + char_name)
             if io.bin_choice("\nFinish Character creation and start game?") == True:
-                self.player.name = char_name
-                self.player.base_stats['health'] = 100
-                self.player.base_stats['attack'] = 10
-                self.player.base_stats['defence'] = 10
-                self.player.set_stats(level = 1)
-                self.player.exp = 0
+                self.player = Player(char_name, 1, player_base_stats)
                 self.player.inventory.gold = 300
                 self.player.inventory.capacity = 4
                 for item_name in self.ITEMS_START:
@@ -410,7 +416,7 @@ class Game():
     #Main Menu/About screen
     def mm_about(self):
         io.cls()
-        io.acknowledge("conrpg v0.1 by Arel")
+        io.acknowledge("conrpg v0.1")
         io.cls()
         return STATUS.SUCCESS
 

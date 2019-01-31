@@ -1,20 +1,38 @@
 {
     "Giant Rat":{
+      "stats":{
         "attack":15,
-        "hp":40,
-        "level_max":4,
-        "level_min":1
+        "health":40,
+        "defense":0,
+        "accuracy":0.7,
+        "evasion":0.2,
+        "speed":1
+      },
+      "level_max":4,
+      "level_min":1
     },
     "Giant Spider":{
+      "stats":{
         "attack":30,
-        "hp":25,
-        "level_max":5,
-        "level_min":1
+        "health":25,
+        "defense":0,
+        "accuracy":0.7,
+        "evasion":0.2,
+        "speed":1
+      },
+      "level_max":5,
+      "level_min":1
     },
     "Wolf":{
+      "stats":{
         "attack":30,
-        "hp":45,
-        "level_max":8,
-        "level_min":3
+        "health":45,
+        "defense":0,
+        "accuracy":0.7,
+        "evasion":0.2,
+        "speed":1
+      },
+      "level_max":8,
+      "level_min":3
     }
 }
